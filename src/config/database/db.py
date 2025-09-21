@@ -1,23 +1,14 @@
 from contextlib import asynccontextmanager
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-    AsyncSession
-)
-from src.database.db_config import db_config
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from src.config.database.db_config import db_config
+
 
 class Database:
     def __init__(self, url: str, echo: bool = False):
-        self.engine = create_async_engine(
-            url=url,
-            echo=echo
-        )
+        self.engine = create_async_engine(url=url, echo=echo)
 
         self.session_factory = async_sessionmaker(
-            bind=self.engine,
-            expire_on_commit=False,
-            autoflush=False,
-            autocommit=False
+            bind=self.engine, expire_on_commit=False, autoflush=False, autocommit=False
         )
 
     @asynccontextmanager

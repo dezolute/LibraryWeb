@@ -1,0 +1,63 @@
+from typing import Annotated, List
+
+from fastapi import APIRouter, Depends, Query
+
+from src.deps import Deps
+from src.schemas import UserCreateDTO, RequestDTO
+from src.schemas import UserDTO
+from src.schemas.utils import Pagination
+from src.services import AuthService
+from src.services.request import RequestService
+from src.utils import OAuth2Utility
+
+user_router = APIRouter(prefix="/users", tags=["Users"])
+
+
+@user_router.post("")
+async def create_user(
+    user_service: Annotated[AuthService, Depends(Deps.auth_service)],
+    user: UserCreateDTO,
+) -> UserDTO:
+    db_user = await user_service.add_user(user)
+    return db_user
+
+
+@user_router.get("/me")
+async def get_current_user(
+    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+) -> UserDTO:
+    return current_user
+
+@user_router.post("/me/requests")
+async def make_requests(
+    book_id: int,
+    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    request_service: Annotated[RequestService, Depends(Deps.request_service)],
+) -> RequestDTO:
+    requests = await request_service.create_request(
+        user_id=current_user.id,
+        book_id=book_id,
+    )
+    return requests
+
+@user_router.get("/me/requests")
+async def get_user_requests(
+    page: Annotated[Pagination, Query()],
+    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    request_service: Annotated[RequestService, Depends(Deps.request_service)],
+) -> List[RequestDTO]:
+    requests = await request_service.get_multi(
+        pg=page,
+        user_id=current_user.id,
+    )
+    return requests
+
+@user_router.delete("/me/requests/{request_id}")
+async def remove_request(
+        request_id: int,
+        current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+        request_service: Annotated[RequestService,  Depends(Deps.request_service)],
+) -> RequestDTO:
+    request = await request_service.user_remove_request(request_id, current_user.id)
+
+    return request

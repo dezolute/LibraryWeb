@@ -1,3 +1,4 @@
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic_settings import BaseSettings
 
 
@@ -9,8 +10,6 @@ class AuthConfig(BaseSettings):
         env_file = ".env"
         env_ignore_empty = True
         extra = "ignore"
-
-
 
 
 auth_config = AuthConfig()

@@ -9,17 +9,17 @@ class ConfigDB(BaseSettings):
     POSTGRE_DB: str
     ECHO: bool
 
-    class Config:
-        env_file = ".env"
-        env_ignore_empty = True
-        extra = "ignore"
-
     @property
     def database_url(self) -> str:
         return (
             f"postgresql+asyncpg://{self.POSTGRE_USER}:{self.POSTGRE_PASSWORD}@"
             f"{self.POSTGRE_HOST}:{self.POSTGRE_PORT}/{self.POSTGRE_DB}"
         )
+
+    class Config:
+        env_file = ".env"
+        env_ignore_empty = True
+        extra = "ignore"
 
 
 db_config = ConfigDB()

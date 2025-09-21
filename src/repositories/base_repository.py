@@ -1,14 +1,21 @@
 from abc import ABC, abstractmethod
+from typing import List
+
+from src.schemas import BookDTO
 
 
-class BaseRepository(ABC):
+class AbstractRepository(ABC):
 
     @abstractmethod
-    async def create(self, **kwargs):
+    async def create(self, data: dict):
         raise NotImplementedError
 
     @abstractmethod
-    async def update(self, **kwargs):
+    async def create_multiple(self, data: List[dict]):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update(self, data: dict, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
