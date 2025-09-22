@@ -29,3 +29,11 @@ class AbstractRepository(ABC):
     @abstractmethod
     async def find_all(self, **kwargs):
         raise NotImplementedError
+
+    @abstractmethod
+    async def create_employee(self, data: dict):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def create_admin(self, data: dict):
+        raise NotImplementedError

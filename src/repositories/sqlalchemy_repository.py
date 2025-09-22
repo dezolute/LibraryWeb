@@ -88,3 +88,9 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
 
             result = await session.execute(query)
             return result.unique().scalars().all()
+
+    async def create_employee(self, data: dict) -> ModelType:
+        pass
+
+    async def create_admin(self, data: dict) -> ModelType:
+        pass

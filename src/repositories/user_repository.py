@@ -5,6 +5,7 @@ from sqlalchemy.orm import selectinload
 
 from src.config.database import db
 from src.models import RequestORM
+from src.models.types import Role
 from src.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType
 from src.models.user import UserORM
 
@@ -45,3 +46,23 @@ class UserRepository(SqlAlchemyRepository):
 
             result = await session.execute(query)
             return result.unique().scalars().all()
+
+    async def create_employee(self, data: dict) -> ModelType:
+        async with db.get_session() as session:
+            model = self.model(**data)
+            model.role = Role.admin
+
+            session.add(model)
+            await session.commit()
+            await session.refresh(model)
+            return model
+
+    async def create_admin(self, data: dict) -> ModelType:
+        async with db.get_session() as session:
+            model = self.model(**data)
+            model.role = Role.admin
+
+            session.add(model)
+            await session.commit()
+            await session.refresh(model)
+            return model
