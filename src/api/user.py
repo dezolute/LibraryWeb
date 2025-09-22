@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from src.deps import Deps
 from src.schemas import UserCreateDTO, RequestDTO
 from src.schemas import UserDTO
+from src.schemas.user import UserRelationDTO, RequestRelationDTO
 from src.schemas.utils import Pagination
 from src.services import AuthService
 from src.services.request import RequestService
@@ -24,14 +25,14 @@ async def create_user(
 
 @user_router.get("/me")
 async def get_current_user(
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
-) -> UserDTO:
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
+) -> UserRelationDTO:
     return current_user
 
 @user_router.post("/me/requests")
 async def make_requests(
     book_id: int,
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)],
 ) -> RequestDTO:
     requests = await request_service.create_request(
@@ -43,9 +44,9 @@ async def make_requests(
 @user_router.get("/me/requests")
 async def get_user_requests(
     page: Annotated[Pagination, Query()],
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)],
-) -> List[RequestDTO]:
+) -> List[RequestRelationDTO]:
     requests = await request_service.get_multi(
         pg=page,
         user_id=current_user.id,
@@ -55,7 +56,7 @@ async def get_user_requests(
 @user_router.delete("/me/requests/{request_id}")
 async def remove_request(
         request_id: int,
-        current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+        current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
         request_service: Annotated[RequestService,  Depends(Deps.request_service)],
 ) -> RequestDTO:
     request = await request_service.user_remove_request(request_id, current_user.id)

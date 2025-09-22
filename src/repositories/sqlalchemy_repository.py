@@ -1,7 +1,7 @@
-from typing import List, TypeVar, Generic
+from typing import List, TypeVar, Generic, Union, Optional
 
 from sqlalchemy import insert, update, delete, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, InstrumentedAttribute, selectinload
 
 from src.config.database import db
 from src.repositories import AbstractRepository
@@ -12,20 +12,16 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
     model = None
-    options = []
+    options = None
 
     async def create(self, data: dict) -> ModelType:
         async with db.get_session() as session:
-            stmt = (
-                insert(self.model)
-                .values(**data)
-                .options(*self.options)
-                .returning(self.model)
-            )
+            model = self.model(**data)
 
-            result = await session.execute(stmt)
+            session.add(model)
             await session.commit()
-            return result.scalars().one()
+            await session.refresh(model)
+            return model
 
     async def create_multiple(self, data: List[dict]) -> List[ModelType]:
         async with db.get_session() as session:
@@ -34,7 +30,7 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
                 model = self.model(**row)
                 list_models.append(model)
 
-            session.add_all(list_models).options(*self.options)
+            session.add_all(list_models)
             await session.commit()
             return list_models
 
@@ -44,47 +40,46 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
                 update(self.model)
                 .values(**data)
                 .filter_by(**filters)
-                .options(*self.options)
                 .returning(self.model)
             )
 
             result = await session.execute(stmt)
             await session.commit()
 
-            return result.scalars().one()
+            return result.scalar_one_or_none()
 
-    async def delete(self, **filters) -> ModelType:
+    async def delete(self,
+                     options: Optional[List[Union[str, InstrumentedAttribute]]] = None,
+                     **filters) -> ModelType:
         async with db.get_session() as session:
             stmt = (
                 delete(self.model)
                 .filter_by(**filters)
-                .options(*self.options)
                 .returning(self.model)
             )
 
             result = await session.execute(stmt)
             await session.commit()
 
-            return result.scalars().one()
+            return result.scalar_one_or_none()
 
-    async def find(self, **filters) -> ModelType:
+    async def find(self,
+                   **filters) -> ModelType:
         async with db.get_session() as session:
             query = (
                 select(self.model)
-                .options(*self.options)
                 .filter_by(**filters)
             )
 
             result = await session.execute(query)
-            return result.scalars().one()
+            return result.scalars().first()
 
     async def find_all(
-        self, limit: int = 100, offset: int = 0, order_by: str = None, **filters
+        self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
     ) -> List[ModelType]:
         async with db.get_session() as session:
             query = (
                 select(self.model)
-                .options(*self.options)
                 .limit(limit)
                 .offset(offset)
                 .order_by(order_by)

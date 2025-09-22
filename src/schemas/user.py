@@ -20,10 +20,12 @@ class UserDTO(UserUpdateDTO):
     id: int
     role: Role
     created_at: datetime
-    requests: list["RequestDTO"] | None
 
     class Config:
         from_attributes = True
+
+class UserRelationDTO(UserDTO):
+    requests: list["RequestSemiRelationDTO"]
 
 
 class RequestDTO(BaseModel):
@@ -34,8 +36,11 @@ class RequestDTO(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    user: UserDTO
-    book: BookDTO
-
     class Config:
         from_attributes = True
+
+class RequestSemiRelationDTO(RequestDTO):
+    book: BookDTO
+
+class RequestRelationDTO(RequestSemiRelationDTO):
+    user: UserDTO

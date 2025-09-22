@@ -8,8 +8,9 @@ from passlib.context import CryptContext
 from starlette import status
 
 from src.config import auth_config
-from src.repositories import UserRepository
+from src.repositories import UserRepository, AbstractRepository
 from src.schemas import UserDTO
+from src.schemas.user import UserRelationDTO
 
 
 class OAuth2Utility:
@@ -53,7 +54,7 @@ class OAuth2Utility:
             )
 
             db_user = await UserRepository().find(email=payload.get("sub"))
-            user = UserDTO.model_validate(db_user)
+            user = UserRelationDTO.model_validate(db_user)
 
             if user is None:
                 raise credentials_exception

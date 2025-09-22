@@ -6,6 +6,7 @@ from starlette import status
 from src.models.types import Status
 from src.repositories import AbstractRepository, BookRepository
 from src.schemas import RequestDTO
+from src.schemas.user import RequestRelationDTO
 from src.schemas.utils import Pagination
 from src.services import BookService
 
@@ -39,7 +40,7 @@ class RequestService:
 
         return RequestDTO.model_validate(request)
 
-    async def get_multi(self, pg: Pagination, **kwargs) -> List[RequestDTO]:
+    async def get_multi(self, pg: Pagination, **kwargs) -> List[RequestRelationDTO]:
         requests = await self.request_repository.find_all(
             limit=pg.limit,
             offset=pg.offset,
@@ -47,9 +48,9 @@ class RequestService:
             **kwargs
         )
 
-        return [RequestDTO.model_validate(row) for row in requests]
+        return [RequestRelationDTO.model_validate(row) for row in requests]
 
-    async def get_single(self, request_id: int):
+    async def get_single(self, request_id: int) -> RequestRelationDTO:
         request = await self.request_repository.find(id=request_id)
 
         if request is None:
@@ -58,7 +59,7 @@ class RequestService:
                 detail=f"Request not found"
             )
 
-        return RequestDTO.model_validate(request)
+        return RequestRelationDTO.model_validate(request)
 
     async def remove_request(self, request_id: int) -> RequestDTO:
         request = await self.request_repository.find(id=request_id)

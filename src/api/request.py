@@ -1,47 +1,40 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.params import Depends, Query
-from sqlalchemy.sql.functions import current_user
-from starlette import status
 
+from .errors import Forbidden
 from src.deps import Deps
 from src.models.types import Role, Status
-from src.schemas import UserDTO, RequestDTO
+from src.schemas import RequestDTO, UserRelationDTO, RequestRelationDTO
 from src.schemas.utils import Pagination
 from src.services.request import RequestService
 from src.utils import OAuth2Utility
 
 
-Forbidden = HTTPException(
-    status_code=status.HTTP_403_FORBIDDEN,
-    detail="You do not have permission to perform this action."
+request_router = APIRouter(
+    prefix="/requests",
+    tags=["Requests"]
 )
 
 
-employee_router = APIRouter(
-    prefix="/employee",
-    tags=["Employee"]
-)
-
-
-@employee_router.get("/requests")
+@request_router.get("")
 async def get_requests(
-    pagination: Annotated[Pagination, Query(Pagination)],
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    pagination: Annotated[Pagination, Query()],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)],
-) -> List[RequestDTO]:
+) -> List[RequestRelationDTO]:
     if current_user.role == Role.employee or current_user.role == Role.admin:
         requests = await request_service.get_multi(pg=pagination)
         return requests
     else:
         raise Forbidden
 
-@employee_router.patch("/requests/{request_id}")
+@request_router.patch("/{request_id}")
 async def update_request_status(
     request_id: int,
     new_status: Status,
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)],
 ):
     if current_user.role == Role.employee or current_user.role == Role.admin:
@@ -50,10 +43,10 @@ async def update_request_status(
     else:
         raise Forbidden
 
-@employee_router.delete("/requests/{request_id}")
+@request_router.delete("/{request_id}")
 async def delete_request(
     request_id: int,
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)]
 ) -> RequestDTO:
     if current_user.role == Role.employee or current_user.role == Role.admin:

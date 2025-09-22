@@ -1,8 +1,10 @@
 from typing import List, Annotated
 from fastapi import APIRouter, Query, Depends
 
+from .errors import Forbidden
 from src.deps import Deps
-from src.schemas import UserDTO, RequestDTO
+from src.models.types import Role
+from src.schemas import UserDTO, RequestDTO, UserRelationDTO
 from src.schemas.book import BookCreateDTO, BookDTO
 from src.schemas.utils import Pagination
 from src.services import BookService
@@ -19,19 +21,26 @@ book_router = APIRouter(
 async def create_book(
     book: BookCreateDTO,
     book_service: Annotated[BookService, Depends(Deps.book_service)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> BookDTO:
-    db_book = await book_service.add_book(book)
-    return db_book
+    if current_user.role == Role.employee or current_user.role == Role.admin:
+        db_book = await book_service.add_book(book)
+        return db_book
+    else:
+        raise Forbidden
 
 
 @book_router.post("/multi")
 async def create_multi(
     books: List[BookCreateDTO],
     book_service: Annotated[BookService, Depends(Deps.book_service)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> List[BookDTO]:
-    dto_books = await book_service.add_multi(books)
-
-    return dto_books
+    if current_user.role == Role.employee or current_user.role == Role.admin:
+        dto_books = await book_service.add_multi(books)
+        return dto_books
+    else:
+        raise Forbidden
 
 
 @book_router.get("")

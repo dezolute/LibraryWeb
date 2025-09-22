@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from api import auth_router, user_router, book_router
+from src.api.request import request_router
 
 
 def get_apps_routes() -> APIRouter:
@@ -9,5 +10,6 @@ def get_apps_routes() -> APIRouter:
     router.include_router(auth_router)
     router.include_router(user_router)
     router.include_router(book_router)
+    router.include_router(request_router)
 
     return router

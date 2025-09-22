@@ -1,9 +1,47 @@
+from typing import List
+
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.repositories.sqlalchemy_repository import SqlAlchemyRepository
+from src.config.database import db
+from src.models import RequestORM
+from src.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType
 from src.models.user import UserORM
 
 
 class UserRepository(SqlAlchemyRepository):
     model = UserORM
-    options = [selectinload(UserORM.requests)]
+
+    async def find(self,
+                   **filters) -> ModelType:
+        async with db.get_session() as session:
+            query = (
+                select(self.model)
+                .options(
+                    selectinload(self.model.requests)
+                    .joinedload(RequestORM.book)
+                )
+                .filter_by(**filters)
+            )
+
+            result = await session.execute(query)
+            return result.scalars().first()
+
+    async def find_all(
+        self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
+    ) -> List[ModelType]:
+        async with db.get_session() as session:
+            query = (
+                select(self.model)
+                .limit(limit)
+                .offset(offset)
+                .order_by(order_by)
+                .options(
+                    selectinload(self.model.requests)
+                    .joinedload(RequestORM.book)
+                )
+                .filter_by(**filters)
+            )
+
+            result = await session.execute(query)
+            return result.unique().scalars().all()
