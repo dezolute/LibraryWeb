@@ -1,7 +1,7 @@
 from .base import Base
 from .book import BookORM
-from .user import UserORM
 from .request import RequestORM
+from .user import UserORM
 
 __all__ = [
     "Base",

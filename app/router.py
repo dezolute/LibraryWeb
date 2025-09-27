@@ -8,6 +8,7 @@ from app.api import (
     admin_router,
 )
 
+
 def get_apps_routes() -> APIRouter:
     router = APIRouter()
 

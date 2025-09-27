@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.router import get_apps_routes
 
+
 def get_app() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME,

@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import TypeVar
 
 from pydantic import BaseModel, EmailStr, Field
+
 from app.models.types import Role, Status
 from app.schemas import BookDTO
 

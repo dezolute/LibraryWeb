@@ -1,7 +1,7 @@
 from typing import List, TypeVar, Generic, Union, Optional
 
-from sqlalchemy import insert, update, delete, select
-from sqlalchemy.orm import joinedload, InstrumentedAttribute, selectinload
+from sqlalchemy import update, delete, select
+from sqlalchemy.orm import InstrumentedAttribute
 
 from app.config.database import db
 from app.repositories import AbstractRepository

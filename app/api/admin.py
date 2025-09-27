@@ -2,12 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app.utils.errors import Forbidden
 from app.deps import Deps
 from app.models.types import Role
 from app.schemas import UserCreateDTO, UserRelationDTO
 from app.services import UserService
 from app.utils import OAuth2Utility
+from app.utils.errors import Forbidden
 
 admin_router = APIRouter(
     prefix="/admin",

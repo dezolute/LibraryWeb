@@ -1,7 +1,7 @@
 from .base_repository import AbstractRepository
 from .book_repository import BookRepository
-from .user_repository import UserRepository
 from .request_repository import RequestRepository
+from .user_repository import UserRepository
 
 __all__ = [
     'AbstractRepository',

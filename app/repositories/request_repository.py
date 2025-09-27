@@ -1,7 +1,7 @@
-from typing import Union, List
+from typing import List
 
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, InstrumentedAttribute, selectinload
+from sqlalchemy.orm import joinedload
 
 from app.config.database import db
 from app.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType

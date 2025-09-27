@@ -1,7 +1,7 @@
 from typing import List, Annotated
+
 from fastapi import APIRouter, Query, Depends
 
-from app.utils.errors import Forbidden
 from app.deps import Deps
 from app.models.types import Role
 from app.schemas import UserDTO, RequestDTO, UserRelationDTO
@@ -10,6 +10,7 @@ from app.schemas.utils import Pagination
 from app.services import BookService
 from app.services.request import RequestService
 from app.utils import OAuth2Utility
+from app.utils.errors import Forbidden
 
 book_router = APIRouter(
     tags=["Books"],

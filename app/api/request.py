@@ -3,14 +3,13 @@ from typing import Annotated, List
 from fastapi import APIRouter
 from fastapi.params import Depends, Query
 
-from app.utils.errors import Forbidden
 from app.deps import Deps
 from app.models.types import Role, Status
 from app.schemas import RequestDTO, UserRelationDTO, RequestRelationDTO
 from app.schemas.utils import Pagination
 from app.services.request import RequestService
 from app.utils import OAuth2Utility
-
+from app.utils.errors import Forbidden
 
 request_router = APIRouter(
     prefix="/requests",
