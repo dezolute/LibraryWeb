@@ -1,11 +1,7 @@
-from datetime import datetime
-
-from sqlalchemy import func
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
 
 
-class Base(AsyncAttrs, DeclarativeBase):
+class Base(DeclarativeBase):
     __abstract__ = True
 
     repr_cols_num = 10

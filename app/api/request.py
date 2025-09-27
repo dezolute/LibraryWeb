@@ -3,7 +3,7 @@ from typing import Annotated, List
 from fastapi import APIRouter
 from fastapi.params import Depends, Query
 
-from .errors import Forbidden
+from src.utils.errors import Forbidden
 from src.deps import Deps
 from src.models.types import Role, Status
 from src.schemas import RequestDTO, UserRelationDTO, RequestRelationDTO

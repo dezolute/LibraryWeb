@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from src.api.errors import Forbidden
+from src.utils.errors import Forbidden
 from src.deps import Deps
 from src.models.types import Role
 from src.schemas import UserCreateDTO, UserRelationDTO

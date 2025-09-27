@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime, timezone
-from typing import Annotated
+from typing import Annotated, Optional
 
 import jwt
 from fastapi import Depends, HTTPException
@@ -8,8 +8,7 @@ from passlib.context import CryptContext
 from starlette import status
 
 from src.config import auth_config
-from src.repositories import UserRepository, AbstractRepository
-from src.schemas import UserDTO
+from src.repositories import UserRepository
 from src.schemas.user import UserRelationDTO
 
 
@@ -26,13 +25,11 @@ class OAuth2Utility:
         return cls.pwd_context.hash(plain_password)
 
     @staticmethod
-    def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
 
         expire = (
-            datetime.now(timezone.utc) + expires_delta
-            if expires_delta
-            else timedelta(minutes=15)
+            datetime.now(timezone.utc) + expires_delta if expires_delta else timedelta(minutes=15)
         )
 
         to_encode.update({"exp": expire})

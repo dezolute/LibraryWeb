@@ -9,7 +9,6 @@ from src.services import AuthService
 
 auth_router = APIRouter(tags=["Auth"])
 
-
 @auth_router.post("/token")
 async def create_session(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
