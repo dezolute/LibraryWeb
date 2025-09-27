@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .env ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src ./src
+COPY app ./app
 EXPOSE 8000
 
-CMD ["python", "src/main.py"]
+CMD ["python", "-m", "app.main"]

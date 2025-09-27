@@ -1,15 +1,15 @@
 from typing import List, Annotated
 from fastapi import APIRouter, Query, Depends
 
-from src.utils.errors import Forbidden
-from src.deps import Deps
-from src.models.types import Role
-from src.schemas import UserDTO, RequestDTO, UserRelationDTO
-from src.schemas.book import BookCreateDTO, BookDTO
-from src.schemas.utils import Pagination
-from src.services import BookService
-from src.services.request import RequestService
-from src.utils import OAuth2Utility
+from app.utils.errors import Forbidden
+from app.deps import Deps
+from app.models.types import Role
+from app.schemas import UserDTO, RequestDTO, UserRelationDTO
+from app.schemas.book import BookCreateDTO, BookDTO
+from app.schemas.utils import Pagination
+from app.services import BookService
+from app.services.request import RequestService
+from app.utils import OAuth2Utility
 
 book_router = APIRouter(
     tags=["Books"],

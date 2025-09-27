@@ -3,9 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.deps import Deps
-from src.schemas.utils import Token
-from src.services import AuthService
+from app.deps import Deps
+from app.schemas.utils import Token
+from app.services import AuthService
 
 auth_router = APIRouter(tags=["Auth"])
 

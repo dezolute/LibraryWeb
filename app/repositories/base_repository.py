@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from src.schemas import BookDTO
+from app.schemas import BookDTO
 
 
 class AbstractRepository(ABC):

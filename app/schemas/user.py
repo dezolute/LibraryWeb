@@ -2,8 +2,8 @@ from datetime import datetime
 from typing import TypeVar
 
 from pydantic import BaseModel, EmailStr, Field
-from src.models.types import Role, Status
-from src.schemas import BookDTO
+from app.models.types import Role, Status
+from app.schemas import BookDTO
 
 
 class UserUpdateDTO(BaseModel):

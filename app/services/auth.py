@@ -5,10 +5,10 @@ from fastapi import HTTPException
 from passlib.context import CryptContext
 from starlette import status
 
-from src.repositories import AbstractRepository
-from src.schemas import UserCreateDTO, UserDTO, UserUpdateDTO
-from src.schemas.utils import Token
-from src.utils.oauth2 import OAuth2Utility
+from app.repositories import AbstractRepository
+from app.schemas import UserCreateDTO, UserDTO, UserUpdateDTO
+from app.schemas.utils import Token
+from app.utils.oauth2 import OAuth2Utility
 
 
 class AuthService:

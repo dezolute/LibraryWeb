@@ -3,9 +3,9 @@ from typing import List, TypeVar, Generic, Union, Optional
 from sqlalchemy import insert, update, delete, select
 from sqlalchemy.orm import joinedload, InstrumentedAttribute, selectinload
 
-from src.config.database import db
-from src.repositories import AbstractRepository
-from src.models import Base
+from app.config.database import db
+from app.repositories import AbstractRepository
+from app.models import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 

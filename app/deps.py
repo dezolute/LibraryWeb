@@ -1,6 +1,6 @@
-from src.repositories import UserRepository, BookRepository, RequestRepository
-from src.services import AuthService, BookService, UserService
-from src.services.request import RequestService
+from app.repositories import UserRepository, BookRepository, RequestRepository
+from app.services import AuthService, BookService, UserService
+from app.services.request import RequestService
 
 
 class Deps:

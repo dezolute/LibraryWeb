@@ -7,9 +7,9 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from starlette import status
 
-from src.config import auth_config
-from src.repositories import UserRepository
-from src.schemas.user import UserRelationDTO
+from app.config import auth_config
+from app.repositories import UserRepository
+from app.schemas.user import UserRelationDTO
 
 
 class OAuth2Utility:

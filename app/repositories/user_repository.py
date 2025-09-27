@@ -3,11 +3,11 @@ from typing import List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from src.config.database import db
-from src.models import RequestORM
-from src.models.types import Role
-from src.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType
-from src.models.user import UserORM
+from app.config.database import db
+from app.models import RequestORM
+from app.models.types import Role
+from app.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType
+from app.models.user import UserORM
 
 
 class UserRepository(SqlAlchemyRepository):

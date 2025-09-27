@@ -2,14 +2,14 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, Query
 
-from src.deps import Deps
-from src.schemas import UserCreateDTO, RequestDTO
-from src.schemas import UserDTO
-from src.schemas.user import UserRelationDTO, RequestRelationDTO
-from src.schemas.utils import Pagination
-from src.services import AuthService
-from src.services.request import RequestService
-from src.utils import OAuth2Utility
+from app.deps import Deps
+from app.schemas import UserCreateDTO, RequestDTO
+from app.schemas import UserDTO
+from app.schemas.user import UserRelationDTO, RequestRelationDTO
+from app.schemas.utils import Pagination
+from app.services import AuthService
+from app.services.request import RequestService
+from app.utils import OAuth2Utility
 
 user_router = APIRouter(prefix="/users", tags=["Users"])
 

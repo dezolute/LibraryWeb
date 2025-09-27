@@ -3,12 +3,12 @@ from typing import List, Callable
 from fastapi import HTTPException
 from starlette import status
 
-from src.models.types import Status
-from src.repositories import AbstractRepository, BookRepository
-from src.schemas import RequestDTO
-from src.schemas.user import RequestRelationDTO
-from src.schemas.utils import Pagination
-from src.services import BookService
+from app.models.types import Status
+from app.repositories import AbstractRepository, BookRepository
+from app.schemas import RequestDTO
+from app.schemas.user import RequestRelationDTO
+from app.schemas.utils import Pagination
+from app.services import BookService
 
 
 class RequestService:

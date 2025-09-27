@@ -1,7 +1,7 @@
 from typing import Callable
 
-from src.repositories import AbstractRepository
-from src.schemas import UserDTO, UserCreateDTO
+from app.repositories import AbstractRepository
+from app.schemas import UserDTO, UserCreateDTO
 
 
 class UserService:

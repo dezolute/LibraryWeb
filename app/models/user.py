@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Optional
 
-from src.models.types import Role
+from app.models.types import Role
 
 from sqlalchemy import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.models.base import Base
+from app.models.base import Base
 
 
 

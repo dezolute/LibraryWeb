@@ -3,10 +3,10 @@ from datetime import timedelta
 
 import jwt
 
-from src.models import UserORM
-from src.repositories import UserRepository, AbstractRepository
-from src.utils import OAuth2Utility
-from src.config import auth_config
+from app.models import UserORM
+from app.repositories import UserRepository, AbstractRepository
+from app.utils import OAuth2Utility
+from app.config import auth_config
 
 async def add_user():
     user_repo: AbstractRepository = UserRepository()

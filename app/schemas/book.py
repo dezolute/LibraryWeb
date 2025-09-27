@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from src.models.types import Priority
+from app.models.types import Priority
 
 
 class BookCreateDTO(BaseModel):

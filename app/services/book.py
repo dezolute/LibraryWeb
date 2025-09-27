@@ -3,8 +3,8 @@ from typing import Callable, List
 from fastapi import HTTPException
 from starlette import status
 
-from src.repositories.base_repository import AbstractRepository
-from src.schemas.book import BookDTO, BookCreateDTO
+from app.repositories.base_repository import AbstractRepository
+from app.schemas.book import BookDTO, BookCreateDTO
 
 
 class BookService:

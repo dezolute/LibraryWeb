@@ -10,8 +10,8 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from src.config.database import db_config
-from src.models import Base
+from app.config.database import db_config
+from app.models import Base
 
 
 config = context.config
