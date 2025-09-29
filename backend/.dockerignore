@@ -1,0 +1,16 @@
+__pycache__
+.env-example
+docker-compose.yml
+LICENSE
+README.md
+poetry.lock
+pyproject.toml
+SECURITY.md
+.gitignore
+tests
+.venv
+.pytest_cache
+.dockerignore
+.idea
+Dockerfile
+.env

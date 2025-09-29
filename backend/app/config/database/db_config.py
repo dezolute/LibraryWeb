@@ -1,0 +1,25 @@
+from pydantic_settings import BaseSettings
+
+
+class ConfigDB(BaseSettings):
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: str
+    POSTGRES_DB: str
+    ECHO: bool
+
+    @property
+    def database_url(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
+            f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
+
+    class Config:
+        env_file = "../.env"
+        env_ignore_empty = True
+        extra = "ignore"
+
+
+db_config = ConfigDB()
