@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -12,4 +14,5 @@ class BookORM(Base):
     author: Mapped[str]
     priority: Mapped[Priority]
     count: Mapped[int]
+    cover: Mapped[Optional[str]]
     year_publication: Mapped[int]

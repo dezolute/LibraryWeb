@@ -5,8 +5,7 @@ from starlette import status
 
 from app.models.types import Status
 from app.repositories import AbstractRepository, BookRepository
-from app.schemas import RequestDTO
-from app.schemas.user import RequestRelationDTO
+from app.schemas import RequestDTO, RequestRelationDTO
 from app.schemas.utils import Pagination
 from app.services import BookService
 
@@ -85,6 +84,10 @@ class RequestService:
                 detail=f"Request already accepted, basic user can't remove it"
             )
 
-        await self.request_repository.delete(id=request_id, user_id=user_id, status=Status.accepted)
+        await self.request_repository.delete(
+            id=request_id,
+            user_id=user_id,
+            status=Status.accepted
+        )
 
         return RequestDTO.model_validate(request)

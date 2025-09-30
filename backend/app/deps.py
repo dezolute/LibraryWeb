@@ -1,3 +1,5 @@
+from starlette.websockets import WebSocket
+
 from app.repositories import UserRepository, BookRepository, RequestRepository
 from app.services import AuthService, BookService, UserService
 from app.services.request import RequestService

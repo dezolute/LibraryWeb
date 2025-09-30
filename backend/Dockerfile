@@ -3,9 +3,11 @@ WORKDIR /usr/local/app
 
 ENV PYTHONUNBUFFERED=1
 
-COPY . .
+COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
 
+COPY entrypoint.sh entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 EXPOSE 8000
-
-CMD ["python", "-m", "app.main"]
+ENTRYPOINT ["./entrypoint.sh"]

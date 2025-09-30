@@ -1,4 +1,1 @@
-FROM ubuntu:latest
-LABEL authors="voeni"
-
-ENTRYPOINT ["top", "-b"]
+FROM python:3.13-slim

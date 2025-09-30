@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.deps import Deps
 from app.schemas import UserCreateDTO, RequestDTO
-from app.schemas import UserDTO
-from app.schemas.user import UserRelationDTO, RequestRelationDTO
+from app.schemas import UserDTO, UserRelationDTO, RequestRelationDTO
 from app.schemas.utils import Pagination
 from app.services import AuthService
 from app.services.request import RequestService
@@ -62,3 +61,10 @@ async def remove_request(
     request = await request_service.user_remove_request(request_id, current_user.id)
 
     return request
+
+@user_router.post("/tg/{user_id}")
+async def create_user(
+    chat_id: int,
+    user_id: int,
+):
+    pass

@@ -53,7 +53,7 @@ async def get_books(
     return books
 
 
-@book_router.get("/{id}")
+@book_router.get("/{book_id}")
 async def get_book(
     book_id: int, book_service: Annotated[BookService, Depends(Deps.book_service)]
 ) -> BookDTO:
@@ -76,8 +76,8 @@ async def delete_book(
     book_id: int, book_service: Annotated[BookService, Depends(Deps.book_service)]
 ) -> BookDTO:
     deleted_book = await book_service.delete_book(book_id)
-
     return deleted_book
+
 
 @book_router.post("/requests")
 async def create_request(

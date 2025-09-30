@@ -2,8 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.models.types import Role, Status
-from app.schemas import BookDTO
+from app.models.types import Role
+from app.schemas.request import RequestSemiRelationDTO
 
 
 class UserUpdateDTO(BaseModel):
@@ -19,28 +19,11 @@ class UserCreateDTO(UserUpdateDTO):
 class UserDTO(UserUpdateDTO):
     id: int
     role: Role
+    icon: str | None
     created_at: datetime
 
     class Config:
         from_attributes = True
 
 class UserRelationDTO(UserDTO):
-    requests: list["RequestSemiRelationDTO"]
-
-
-class RequestDTO(BaseModel):
-    id: int
-    user_id: int
-    book_id: int
-    status: Status
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class RequestSemiRelationDTO(RequestDTO):
-    book: BookDTO
-
-class RequestRelationDTO(RequestSemiRelationDTO):
-    user: UserDTO
+    requests: list[RequestSemiRelationDTO]

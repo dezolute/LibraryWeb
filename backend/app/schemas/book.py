@@ -8,6 +8,7 @@ class BookCreateDTO(BaseModel):
     author: str = Field(max_length=100)
     priority: Priority
     count: int = Field(default=0)
+    cover: str | None
     year_publication: int = Field(ge=2000)
 
 

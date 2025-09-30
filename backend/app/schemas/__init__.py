@@ -1,5 +1,6 @@
 from .book import BookDTO, BookCreateDTO
-from .user import UserDTO, UserUpdateDTO, UserCreateDTO, RequestDTO, RequestRelationDTO, UserRelationDTO
+from .user import UserDTO, UserUpdateDTO, UserCreateDTO, UserRelationDTO
+from .request import RequestDTO, RequestSemiRelationDTO, RequestRelationDTO
 
 __all__ = [
     "BookCreateDTO",

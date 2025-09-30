@@ -2,7 +2,6 @@ from typing import Callable, List
 
 from fastapi import HTTPException
 from starlette import status
-
 from app.repositories.base_repository import AbstractRepository
 from app.schemas.book import BookDTO, BookCreateDTO
 
@@ -44,15 +43,19 @@ class BookService:
         return list_books_dto
 
     async def update_book(self, book_id: int, book: BookCreateDTO) -> BookDTO:
-        book_dict = book.model_dump()
-        new_book = await self.book_repository.update(book_dict, id=book_id)
-
-        if new_book is None:
+        db_book = await self.book_repository.find(id=book_id)
+        if db_book is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
             )
 
-        return BookDTO.model_validate(new_book)
+        book_dict = book.model_dump()
+        updated_book = await self.book_repository.update(book_dict, id=book_id)
+        updated_book = BookDTO.model_validate(updated_book)
+        if db_book.count == 0 and book.count != 0:
+            pass
+
+        return updated_book
 
     async def delete_book(self, book_id: int) -> BookDTO:
         book = await self.book_repository.delete(id=book_id)
