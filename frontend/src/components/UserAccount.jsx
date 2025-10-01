@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, Typography, Descriptions, Button, Table, Tag, Spin, Flex } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -8,8 +9,6 @@ const statusColor = {
   APPROVED: 'green',
   REJECTED: 'red',
 };
-
-const url = 'http://localhost'
 
 const columns = [
     {
@@ -47,7 +46,7 @@ const UserAccount = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch(url + '/api/users/me', {
+      fetch('/api/users/me', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         },

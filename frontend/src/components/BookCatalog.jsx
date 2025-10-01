@@ -3,8 +3,6 @@ import { Card, Col, Row, Tag, Typography, Pagination, Spin } from 'antd';
 
 const { Title } = Typography;
 
-const url = 'http://localhost'
-
 const priorityColor = {
   HIGH: 'red',
   MEDIUM: 'orange',
@@ -22,9 +20,9 @@ const BookCatalog = () => {
     setLoading(true);
     try {
       const offset = (page - 1) * limit
-      const response = await fetch(`${url}/api/books?limit=${limit}&offset=${offset}`);
+      const response = await fetch(`/api/books?limit=${limit}&offset=${offset}`);
       const data = await response.json();
-      setBooks(data.items);       // предполагается, что API возвращает { items: [...], total: number }
+      setBooks(data.items);
       setTotal(data.total);
     } catch (error) {
       console.error('Ошибка загрузки книг:', error);

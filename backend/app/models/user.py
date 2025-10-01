@@ -15,7 +15,7 @@ class UserORM(Base):
     name: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
     role: Mapped[Role] = mapped_column(default=Role.user)
-    char_id: Mapped[Optional[int]] = mapped_column(unique=True, default=-1)
+    char_id: Mapped[Optional[int]]
     icon: Mapped[Optional[str]]
     encrypted_password: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

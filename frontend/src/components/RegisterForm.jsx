@@ -1,14 +1,14 @@
 import { Form, Input, Button, Typography, Card } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import { useNavigate, Link } from 'react-router-dom';
 
 const { Title } = Typography;
 
-const url = "http://localhost"
-
 const RegisterForm = () => {
+  const navigate = useNavigate()
   const onFinish = async (values) => {
     try {
-      const response = await fetch( url + '/api/users', {
+      const response = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -16,8 +16,9 @@ const RegisterForm = () => {
 
       const result = await response.json();
       console.log('Регистрация успешна:', result);
+      navigate('/login')
     } catch (error) {
-      console.error('Ошибка регистрации:', error);
+      alert('Ошибка регистрации:', error.message);
     }
   };
 
@@ -64,7 +65,7 @@ const RegisterForm = () => {
           </Form.Item>
 
           <Form.Item
-            name="confirm"
+            name="confirm_password"
             label="Подтвердите пароль"
             dependencies={['password']}
             hasFeedback
@@ -95,6 +96,9 @@ const RegisterForm = () => {
             <Button type="primary" size='large' htmlType="submit">
               Зарегистрироваться
             </Button>
+          </Form.Item>
+          <Form.Item style={{ textAlign: 'center' }}>
+            Есть аккаунт? <Link to="/login">Войдите</Link>
           </Form.Item>
         </Form>
       </Card>

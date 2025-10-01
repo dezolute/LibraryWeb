@@ -1,17 +1,16 @@
 import { Form, Input, Button, Checkbox, Typography, Card } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
-const url = "http://localhost"
-
 const LoginForm = () => {
+  const navigate = useNavigate();
   const onFinish = async (values) => {
     try {
       const request = `grant_type=password&username=${values.email}&password=${values.password}&scope=&client_id=string&client_secret=secret_key`
       
-      const response = await fetch( url + '/api/token', {
+      const response = await fetch('/api/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: request,
@@ -19,8 +18,9 @@ const LoginForm = () => {
 
       const result = await response.json();
       localStorage.setItem('access_token', result['access_token'])
+      navigate('/account')
     } catch (error) {
-      console.error('Ошибка при отправке:', error);
+      alert('Ошибка при отправке:', error.message);
     }
   };
 
