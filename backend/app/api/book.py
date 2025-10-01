@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query, Depends
 from app.deps import Deps
 from app.models.types import Role
 from app.schemas import UserDTO, RequestDTO, UserRelationDTO
-from app.schemas.book import BookCreateDTO, BookDTO
+from app.schemas.book import BookCreateDTO, BookDTO, MultiBookDTO
 from app.schemas.utils import Pagination
 from app.services import BookService
 from app.services.request import RequestService
@@ -22,13 +22,13 @@ book_router = APIRouter(
 async def create_book(
     book: BookCreateDTO,
     book_service: Annotated[BookService, Depends(Deps.book_service)],
-    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
+    # current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> BookDTO:
-    if current_user.role == Role.employee or current_user.role == Role.admin:
-        db_book = await book_service.add_book(book)
-        return db_book
-    else:
-        raise Forbidden
+    # if current_user.role == Role.employee or current_user.role == Role.admin:
+    db_book = await book_service.add_book(book)
+    return db_book
+    # else:
+    #     raise Forbidden
 
 
 @book_router.post("/multi")
@@ -48,7 +48,7 @@ async def create_multi(
 async def get_books(
     pg: Annotated[Pagination, Query()],
     book_service: Annotated[BookService, Depends(Deps.book_service)],
-) -> List[BookDTO]:
+) -> MultiBookDTO:
     books = await book_service.get_multi(pg.limit, pg.offset, order_by=pg.order_by)
     return books
 

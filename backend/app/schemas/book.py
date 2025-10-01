@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel, Field
 
 from app.models.types import Priority
@@ -15,5 +17,11 @@ class BookCreateDTO(BaseModel):
 class BookDTO(BookCreateDTO):
     id: int
 
+    class Config:
+        from_attributes = True
+
+class MultiBookDTO(BaseModel):
+    items: List[BookDTO]
+    total: int
     class Config:
         from_attributes = True

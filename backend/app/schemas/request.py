@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, List
 from pydantic import BaseModel
 from datetime import datetime
 from app.models.types import Status
@@ -22,3 +22,9 @@ class RequestSemiRelationDTO(RequestDTO):
 
 class RequestRelationDTO(RequestSemiRelationDTO):
     user: UserDTO
+
+class MultiRequestDTO(RequestDTO[RequestRelationDTO]):
+    items: List[RequestRelationDTO]
+    total: int
+    class Config:
+        from_attributes = True

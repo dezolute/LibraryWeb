@@ -1,6 +1,7 @@
 from typing import List, TypeVar, Generic, Union, Optional
 
-from sqlalchemy import update, delete, select
+from requests import session
+from sqlalchemy import update, delete, select, func
 from sqlalchemy.orm import InstrumentedAttribute
 
 from app.config.database import db
@@ -76,7 +77,7 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
 
     async def find_all(
         self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
-    ) -> List[ModelType]:
+    ) -> (List[ModelType], int):
         async with db.get_session() as session:
             query = (
                 select(self.model)
@@ -87,7 +88,9 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
             )
 
             result = await session.execute(query)
-            return result.unique().scalars().all()
+            total = await session.execute(func.count(self.model.id))
+
+            return result.unique().scalars().all(), total.scalar()
 
     async def create_employee(self, data: dict) -> ModelType:
         pass

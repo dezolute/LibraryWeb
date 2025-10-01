@@ -20,6 +20,7 @@ def get_app() -> FastAPI:
         allow_origins=settings.origins,
         allow_credentials=True,
         allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     return application
