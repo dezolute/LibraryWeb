@@ -14,12 +14,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout
+        uses: actions/checkout@5
         with:
           fetch-depth: 0
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request
+        uses: peter-evans/create-pull-request@4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Auto-created PR from ${{ github.ref_name }}"
