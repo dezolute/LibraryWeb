@@ -3,7 +3,7 @@ from typing import Callable, List
 from fastapi import HTTPException
 from starlette import status
 from app.repositories.base_repository import AbstractRepository
-from app.schemas.book import BookDTO, BookCreateDTO
+from app.schemas.book import BookDTO, BookCreateDTO, MultiBookDTO
 
 
 class BookService:
@@ -21,12 +21,12 @@ class BookService:
 
     async def get_multi(
         self, limit: int, offset: int, order_by: str, **filters
-    ) -> List[BookDTO]:
-        books = await self.book_repository.find_all(
+    ) -> MultiBookDTO:
+        books, total = await self.book_repository.find_all(
             limit=limit, offset=offset, order_by=order_by, **filters
         )
 
-        books_dto = [BookDTO.model_validate(row) for row in books]
+        books_dto = MultiBookDTO(items=[BookDTO.model_validate(row) for row in books], total=total)
         return books_dto
 
     async def add_book(self, book: BookCreateDTO) -> BookDTO:

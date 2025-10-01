@@ -6,6 +6,7 @@ from fastapi.params import Depends, Query
 from app.deps import Deps
 from app.models.types import Role, Status
 from app.schemas import RequestDTO, UserRelationDTO, RequestRelationDTO
+from app.schemas.request import MultiRequestDTO
 from app.schemas.utils import Pagination
 from app.services.request import RequestService
 from app.utils import OAuth2Utility
@@ -22,7 +23,7 @@ async def get_requests(
     pagination: Annotated[Pagination, Query()],
     current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)],
-) -> List[RequestRelationDTO]:
+) -> MultiRequestDTO:
     if current_user.role == Role.employee or current_user.role == Role.admin:
         requests = await request_service.get_multi(pg=pagination)
         return requests

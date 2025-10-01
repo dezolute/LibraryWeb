@@ -16,6 +16,8 @@ services:
     restart: always
     depends_on:
       - db
+    command: >
+      sh -c "alembic upgrade head && python -m app.main"
     networks:
       - dev
       - backend
