@@ -31,7 +31,7 @@ const MainLayout = ({ children }) => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center' }}>
+      <Header style={{ display: 'flex', alignItems: 'center', paddingLeft: '90px' }}>
         <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', marginRight: '30px' }}>
           LibraryWeb
         </div>

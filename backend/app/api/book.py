@@ -37,11 +37,11 @@ async def create_multi(
     book_service: Annotated[BookService, Depends(Deps.book_service)],
     current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> List[BookDTO]:
-    if current_user.role == Role.employee or current_user.role == Role.admin:
-        dto_books = await book_service.add_multi(books)
-        return dto_books
-    else:
-        raise Forbidden
+    # if current_user.role == Role.employee or current_user.role == Role.admin:
+    dto_books = await book_service.add_multi(books)
+    return dto_books
+    # else:
+    #     raise Forbidden
 
 
 @book_router.get("")

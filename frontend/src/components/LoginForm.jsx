@@ -1,4 +1,4 @@
-import { Form, Input, Button, Checkbox, Typography, Card } from 'antd';
+import { Form, Input, Button, Typography, Card, Alert } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -15,12 +15,16 @@ const LoginForm = () => {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: request,
       });
-
       const result = await response.json();
       localStorage.setItem('access_token', result['access_token'])
-      navigate('/account')
+      if (response.ok) {
+        navigate('/account')
+      }
+      else {
+        <Alert message="Error" description={response.statusText} closable showIcon/>
+      }
     } catch (error) {
-      alert('Ошибка при отправке:', error.message);
+      <Alert message="Error" description={error.message} closable showIcon/>
     }
   };
 

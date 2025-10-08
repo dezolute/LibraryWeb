@@ -5,13 +5,7 @@ If you want to test LibraryWeb you must have [Docker](https://docs.docker.com/de
 Setup LibraryWeb in docker
 
 ```bash
-# Linux
-source ./scripts/setup.sh
-```
-
-```bash
-# Windows
-./scripts/setup.ps1
+docker compose -f ./docker-compose.yml -p libraryweb up -d
 ```
 
 ## Technology Stack and Features

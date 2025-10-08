@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta, datetime, timezone
 from typing import Annotated, Optional
 
@@ -32,11 +33,26 @@ class OAuth2Utility:
             datetime.now(timezone.utc) + expires_delta if expires_delta else timedelta(minutes=15)
         )
 
-        to_encode.update({"exp": expire})
+        to_encode.update({
+            "exp": expire,
+            "type": "access-token",
+            "jti": str(uuid.uuid4()),
+        })
         encoded_jwt = jwt.encode(
             to_encode, auth_config.JWT_SECRET, algorithm=auth_config.JWT_ALGORITHM
         )
         return encoded_jwt
+
+    @staticmethod
+    def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+        to_encode = data.copy()
+
+        expire = (
+            datetime.now(timezone.utc) + expires_delta if expires_delta else timedelta(minutes=15)
+        )
+
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode()
 
     @staticmethod
     async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
