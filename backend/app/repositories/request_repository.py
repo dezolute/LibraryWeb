@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import joinedload
 
 from app.config.database import db
@@ -25,7 +25,7 @@ class RequestRepository(SqlAlchemyRepository):
 
     async def find_all(
         self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
-    ) -> List[ModelType]:
+    ) -> (List[ModelType], int):
         async with db.get_session() as session:
             query = (
                 select(self.model)
@@ -37,4 +37,5 @@ class RequestRepository(SqlAlchemyRepository):
             )
 
             result = await session.execute(query)
-            return result.unique().scalars().all()
+            total = await session.execute(func.count())
+            return result.unique().scalars().all(), total.scalar()

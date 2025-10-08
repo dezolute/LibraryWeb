@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from app.deps import Deps
 from app.schemas import UserCreateDTO, RequestDTO
 from app.schemas import UserDTO, UserRelationDTO, RequestRelationDTO
+from app.schemas.request import MultiRequestDTO
 from app.schemas.utils import Pagination
 from app.services import AuthService
 from app.services.request import RequestService
@@ -45,12 +46,12 @@ async def get_user_requests(
     page: Annotated[Pagination, Query()],
     current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
     request_service: Annotated[RequestService, Depends(Deps.request_service)],
-) -> List[RequestRelationDTO]:
-    requests = await request_service.get_multi(
+) -> MultiRequestDTO:
+    db_requests = await request_service.get_multi(
         pg=page,
         user_id=current_user.id,
     )
-    return requests
+    return db_requests
 
 @user_router.delete("/me/requests/{request_id}")
 async def remove_request(
@@ -61,10 +62,3 @@ async def remove_request(
     request = await request_service.user_remove_request(request_id, current_user.id)
 
     return request
-
-@user_router.post("/tg/{user_id}")
-async def create_user(
-    chat_id: int,
-    user_id: int,
-):
-    pass
