@@ -19,7 +19,6 @@ class UserCreateDTO(UserUpdateDTO):
 class UserDTO(UserUpdateDTO):
     id: int
     role: Role
-    icon: str | None
     created_at: datetime
 
     class Config:

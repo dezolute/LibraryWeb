@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.utils.sqladmin import get_admin
 from app.config import settings
 from app.router import get_apps_routes
 
@@ -27,6 +28,7 @@ def get_app() -> FastAPI:
 
 
 app = get_app()
+admin = get_admin(app)
 
 
 if __name__ == "__main__":

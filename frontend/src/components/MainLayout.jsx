@@ -31,9 +31,9 @@ const MainLayout = ({ children }) => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', alignItems: 'center' }}>
+      <Header style={{ display: 'flex', alignItems: 'center', paddingLeft: '90px' }}>
         <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold', marginRight: '30px' }}>
-          Мой Сайт
+          LibraryWeb
         </div>
         <Menu theme="dark" mode="horizontal" selectedKeys={[selectedKey]} items={menuItems} />
       </Header>
@@ -43,7 +43,7 @@ const MainLayout = ({ children }) => {
       </Content>
 
       <Footer style={{ textAlign: 'center' }}>
-        © {new Date().getFullYear()} Мой Сайт
+        © {new Date().getFullYear()} LibraryWeb
       </Footer>
     </Layout>
   );

@@ -18,7 +18,6 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
     async def create(self, data: dict) -> ModelType:
         async with db.get_session() as session:
             model = self.model(**data)
-
             session.add(model)
             await session.commit()
             await session.refresh(model)

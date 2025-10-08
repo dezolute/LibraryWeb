@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Card, Typography, Descriptions, Button, Table, Tag, Spin, Flex } from 'antd';
+import { Card, Typography, Descriptions, Button, Table, Tag, Spin } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
 const statusColor = {
-  PENDING: 'orange',
-  APPROVED: 'green',
-  REJECTED: 'red',
+  accepted: 'green',
+  in_queued: 'purple',
+  awaiting: 'orange',
+  given: 'green',
+  returned: ''
 };
-
-const url = 'http://localhost'
 
 const columns = [
     {
@@ -44,10 +45,19 @@ const UserAccount = () => {
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
+  const logout = () => {
+    localStorage.removeItem('access_token')
+    navigate('/login')
+  }
+  const goBooks = () => {
+    navigate('/books')
+  }
+
 
   useEffect(() => {
     Promise.all([
-      fetch(url + '/api/users/me', {
+      fetch('/api/users/me', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         },
@@ -75,8 +85,8 @@ const UserAccount = () => {
             <Descriptions.Item label="Дата регистрации">{user.created_at}</Descriptions.Item>
           </Descriptions>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
-            <Button type='primary'>Создать запрос</Button>
-            <Button>Выйти из аккаунта</Button>
+            <Button type='primary' onClick={goBooks}>Смотреть каталог</Button>
+            <Button onClick={logout}>Выйти из аккаунта</Button>
           </div>
         </Card>
       </div>

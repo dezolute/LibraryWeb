@@ -8,7 +8,7 @@ from starlette import status
 from app.repositories import AbstractRepository
 from app.schemas import UserCreateDTO, UserDTO, UserUpdateDTO
 from app.schemas.utils import Token
-from app.utils.oauth2 import OAuth2Utility
+from app.utils.auth.oauth2 import OAuth2Utility
 
 
 class AuthService:
