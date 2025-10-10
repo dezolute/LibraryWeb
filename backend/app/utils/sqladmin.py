@@ -50,9 +50,12 @@ class RequestAdmin(BaseAdmin, model=RequestORM):
     ]
 
 def get_admin(app: FastAPI) -> Admin:
+
+
     admin = Admin(
         app=app,
         engine=db.engine,
+        session_maker=db.session_factory,
     )
 
     admin.add_view(UserAdmin)

@@ -1,18 +1,18 @@
 from enum import Enum
 
 
-class Role(Enum):
+class Role(str, Enum):
     user = "user"
     admin = "admin"
     employee = "employee"
 
 
-class Priority(Enum):
+class Priority(str, Enum):
     low = "low"
     high = "high"
 
 
-class Status(Enum):
+class Status(str, Enum):
     accepted = "accepted"
     in_queued = "in_queued"
     awaiting = "awaiting"

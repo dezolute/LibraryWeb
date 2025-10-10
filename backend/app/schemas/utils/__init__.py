@@ -1,8 +1,9 @@
 from .pagination import Pagination
-from .token import Token, TokenData
+from .token import Token, TokenData, PairTokens
 
 __all__ = [
     "Token",
     "TokenData",
-    "Pagination"
+    "PairTokens",
+    "Pagination",
 ]

@@ -1,12 +1,15 @@
-from typing import TypeVar, Generic, List
-from pydantic import BaseModel
+from typing import List
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from app.models.types import Status
 from app.schemas.book import BookDTO
 
-UserDTO = TypeVar("UserDTO", bound=BaseModel)
+class UserDTO(BaseModel):
+    pass
 
-class RequestDTO(BaseModel, Generic[UserDTO]):
+class RequestDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     book_id: int
@@ -14,17 +17,18 @@ class RequestDTO(BaseModel, Generic[UserDTO]):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+
 
 class RequestSemiRelationDTO(RequestDTO):
     book: BookDTO
 
+
 class RequestRelationDTO(RequestSemiRelationDTO):
     user: UserDTO
 
-class MultiRequestDTO(RequestDTO[RequestRelationDTO]):
+
+class MultiRequestDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     items: List[RequestRelationDTO]
     total: int
-    class Config:
-        from_attributes = True

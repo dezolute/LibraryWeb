@@ -13,5 +13,6 @@ class BookORM(Base):
     title: Mapped[str]
     author: Mapped[str]
     priority: Mapped[Priority]
+    cover: Mapped[Optional[str]]
     count: Mapped[int]
     year_publication: Mapped[int]

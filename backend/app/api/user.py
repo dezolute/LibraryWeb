@@ -1,6 +1,6 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 
 from app.deps import Deps
 from app.schemas import UserCreateDTO, RequestDTO
@@ -16,8 +16,8 @@ user_router = APIRouter(prefix="/users", tags=["Users"])
 
 @user_router.post("")
 async def create_user(
-    user_service: Annotated[AuthService, Depends(Deps.auth_service)],
     user: UserCreateDTO,
+    user_service: Annotated[AuthService, Depends(Deps.auth_service)],
 ) -> UserDTO:
     db_user = await user_service.add_user(user)
     return db_user

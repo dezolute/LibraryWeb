@@ -1,7 +1,10 @@
+import os.path
 from typing import Callable, List
 
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from starlette import status
+
+from app.modules.s3_files import upload_file_to_s3
 from app.repositories.base_repository import AbstractRepository
 from app.schemas.book import BookDTO, BookCreateDTO, MultiBookDTO
 
@@ -66,3 +69,15 @@ class BookService:
             )
 
         return BookDTO.model_validate(book)
+
+    async def set_cover_to_book(self, book_id: int, file: UploadFile) -> BookDTO:
+        path_to_file = f'{os.path.abspath('.')}\\temp\\new_cover.{file.filename.split('.')[-1]}'
+        with open(path_to_file, 'wb') as f:
+            f.write(await file.read())
+
+        url = upload_file_to_s3(path_to_file)
+
+        book = await self.book_repository.update({ "cover": url }, id=book_id)
+
+        book_db = BookDTO.model_validate(book)
+        return book_db

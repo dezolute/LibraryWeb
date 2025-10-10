@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, Tag, Spin, Typography, Alert } from 'antd';
+import { CONFIG } from '../constants/config'
 
 const { Title } = Typography;
+const apiUrl = CONFIG.API_URL
+
 const icon = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Fpremium-vector%2Fvector-illustration-for-the-cover-of-the-koran-with-arabic-calligraphy_700449-80.jpg%3Fw%3D2000&f=1&nofb=1&ipt=692a83ba91427161456ef53f22bd838527bb8339300cea444a2e81ab56f05929'
 
 const priorityColor = {
@@ -19,7 +22,7 @@ const BookPage = () => {
   useEffect(() => {
     const fetchBook = async () => {
       try {
-        const response = await fetch(`/api/books/${id}`, {
+        const response = await fetch(`${apiUrl}/books/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

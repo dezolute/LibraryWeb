@@ -1,6 +1,6 @@
 from typing import List, Annotated
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Depends, UploadFile, File, Form
 
 from app.deps import Deps
 from app.models.types import Role
@@ -25,6 +25,8 @@ async def create_book(
     # current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> BookDTO:
     # if current_user.role == Role.employee or current_user.role == Role.admin:
+    print(book)
+
     db_book = await book_service.add_book(book)
     return db_book
     # else:
@@ -61,7 +63,7 @@ async def get_book(
     return book
 
 
-@book_router.put("/{id}")
+@book_router.put("/{book_id}")
 async def update_book(
     book_id: int,
     new_book: BookCreateDTO,
@@ -70,8 +72,16 @@ async def update_book(
     updated_book = await book_service.update_book(book_id, new_book)
     return updated_book
 
+@book_router.patch("/{book_id}")
+async def set_book_cover(
+    book_id: int,
+    cover: Annotated[UploadFile, File()],
+    book_service: Annotated[BookService, Depends(Deps.book_service)],
+):
+    covered_book = await book_service.set_cover_to_book(book_id, cover)
+    return covered_book
 
-@book_router.delete("/{id}")
+@book_router.delete("/{book_id}")
 async def delete_book(
     book_id: int, book_service: Annotated[BookService, Depends(Deps.book_service)]
 ) -> BookDTO:

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Card, Typography, Descriptions, Button, Table, Tag, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { CONFIG } from '../constants/config';
 
 const { Title } = Typography;
+const apiUrl = CONFIG.API_URL
 
 const statusColor = {
   accepted: 'green',
@@ -57,7 +59,7 @@ const UserAccount = () => {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/users/me', {
+      fetch(`${apiUrl}/users/me`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         },

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Card, Flex, Tag, Typography, Pagination, Spin, Button, Alert } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { CONFIG } from '../constants/config'
 
 const { Title } = Typography;
+const apiUrl = CONFIG.API_URL
 
 const priorityColor = {
   high: 'red',
@@ -25,7 +27,7 @@ const BookCatalog = () => {
     setLoading(true);
     try {
       const offset = (page - 1) * limit
-      const response = await fetch(`http://localhost/api/books?limit=${limit}&offset=${offset}&order_by=id`);
+      const response = await fetch(`${apiUrl}/books?limit=${limit}&offset=${offset}&order_by=id`);
       const data = await response.json();
       setBooks(data.items);
       setTotal(data.total);
@@ -81,7 +83,7 @@ const BookCatalog = () => {
                     <span><strong>Автор:</strong> {book.author}</span>
                     <span><strong>Год издания:</strong> {book.year_publication}</span>
                     <span><strong>В наличии:</strong> {book.count}</span>
-                    <span><strong>Приоритет</strong> <Tag style={{ padding: 1 fontSize: 14 }} color={priorityColor[book.priority]}>{book.priority}</Tag></span>
+                    <span><strong>Приоритет</strong> <Tag style={{ padding: 1, fontSize: 14 }} color={priorityColor[book.priority]}>{book.priority}</Tag></span>
                   </Flex>
                   <div>
                     <Button 
@@ -100,7 +102,7 @@ const BookCatalog = () => {
                   float: 'left',
                 }}
                 loading='lazy'
-                src={icon}></img>
+                src={book.cover == null ? icon : book.cover}></img>
               </Flex>
             </Card>
           ))}
