@@ -2,19 +2,19 @@ from enum import Enum
 
 
 class Role(str, Enum):
-    user = "user"
-    admin = "admin"
-    employee = "employee"
+    USER = "USER"
+    ADMIN = "ADMIN"
+    EMPLOYEE = "EMPLOYEE"
 
 
 class Priority(str, Enum):
-    low = "low"
-    high = "high"
+    LOW = "LOW"
+    HIGH = "HIGH"
 
 
 class Status(str, Enum):
-    accepted = "accepted"
-    in_queued = "in_queued"
-    awaiting = "awaiting"
-    given = "given"
-    returned = "returned"
+    ACCEPTED = "ACCEPTED"
+    IN_QUEUED = "IN_QUEUED"
+    AWAITING = "AWAITING"
+    GIVEN = "GIVEN"
+    RETURNED = "RETURNED"

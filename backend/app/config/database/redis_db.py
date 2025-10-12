@@ -1,8 +1,12 @@
 from contextlib import asynccontextmanager
 from redis.asyncio import Redis
+from enum import Enum
 
 from app.config.database.redis_config import redis_config
 
+class RedisEnum(int, Enum):
+    TOKENS = 0
+    VERIFY_EMAIL = 1
 
 class RedisConnection:
     def __init__(self, host, port, db):
@@ -25,17 +29,16 @@ class RedisConnection:
             await self.redis.close()
 
 class RedisDB:
-    def __init__(self, host, port, db):
+    def __init__(self, host, port):
         self.host = host
         self.port = port
-        self.db = db
 
     @asynccontextmanager
-    async def get_connect(self):
+    async def get_connect(self, db: RedisEnum):
         async with RedisConnection(
                 host=self.host,
                 port=self.port,
-                db=self.db
+                db=db.value
         ) as conn:
             try:
                 await conn.ping()
@@ -47,5 +50,4 @@ class RedisDB:
 redis_db = RedisDB(
     host=redis_config.REDIS_HOST,
     port=redis_config.REDIS_PORT,
-    db=redis_config.REDIS_DB,
 )

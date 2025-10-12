@@ -27,7 +27,7 @@ const BookCatalog = () => {
     setLoading(true);
     try {
       const offset = (page - 1) * limit
-      const response = await fetch(`${apiUrl}/books?limit=${limit}&offset=${offset}&order_by=id`);
+      const response = await fetch(`${apiUrl}/books?limit=${limit}&offset=${offset}&order_by=cover`);
       const data = await response.json();
       setBooks(data.items);
       setTotal(data.total);

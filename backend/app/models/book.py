@@ -12,6 +12,7 @@ class BookORM(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str]
     author: Mapped[str]
+    publisher: Mapped[str]
     priority: Mapped[Priority]
     cover: Mapped[Optional[str]]
     count: Mapped[int]

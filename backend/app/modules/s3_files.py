@@ -1,8 +1,6 @@
 import boto3
 import uuid
 
-from fastapi import UploadFile
-
 from app.config import s3_config
 
 def get_s3_client():

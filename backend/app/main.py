@@ -11,7 +11,7 @@ def get_app() -> FastAPI:
     application = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.PROJECT_VERSION,
-        debug=settings.DEBUG,
+        debug=settings.DEBUG
     )
 
     application.include_router(get_apps_routes())

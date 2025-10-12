@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 from typing import Annotated, List, Optional
 
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
@@ -32,7 +31,7 @@ class UserDTO(UserUpdateDTO):
     icon: Annotated[Optional[str], Field(default=None)]
     role: Role
     created_at: datetime
-
+    verified: bool
 
 
 class UserRelationDTO(UserDTO):

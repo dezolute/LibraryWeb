@@ -1,13 +1,11 @@
 from typing import Callable
 
-from dulwich.objects import is_commit
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException
 from passlib.context import CryptContext
 from starlette import status
 
-from app.modules.s3_files import upload_file_to_s3
+from app.config.database import RedisEnum
 from app.repositories import AbstractRepository
-from app.schemas import UserCreateDTO, UserDTO, UserUpdateDTO
 from app.schemas.utils import PairTokens
 from app.utils.auth.oauth2 import OAuth2Utility
 from app.modules import RedisRepository
@@ -16,7 +14,7 @@ from app.modules import RedisRepository
 class AuthService:
     def __init__(self, user_repository: Callable[[], AbstractRepository]):
         self.user_repository: AbstractRepository = user_repository()
-        self.redis: RedisRepository = RedisRepository()
+        self.redis: RedisRepository = RedisRepository(RedisEnum.TOKENS)
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def login(self, form_data) -> PairTokens:
@@ -58,23 +56,3 @@ class AuthService:
         await self.redis.set_refresh_token(tokens.token_id, tokens.refresh_token)
 
         return tokens
-
-    async def add_user(self, user: UserCreateDTO, file: UploadFile) -> UserDTO:
-        encrypted_password = OAuth2Utility.get_hashed_password(user.password)
-
-        url = upload_file_to_s3(file)
-
-        user_dict = user.model_dump()
-
-        clear_user = UserUpdateDTO.model_validate(user_dict)
-        user_dict = clear_user.model_dump()
-        user_dict.update(
-            {
-                "encrypted_password": encrypted_password,
-                "icon": url
-            }
-        )
-
-        db_user = await self.user_repository.create(user_dict)
-
-        return UserDTO.model_validate(db_user)

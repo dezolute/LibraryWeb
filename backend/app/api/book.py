@@ -1,14 +1,13 @@
 from typing import List, Annotated
 
-from fastapi import APIRouter, Query, Depends, UploadFile, File, Form
+from fastapi import APIRouter, Query, Depends, UploadFile, File
 
 from app.deps import Deps
 from app.models.types import Role
-from app.schemas import UserDTO, RequestDTO, UserRelationDTO
-from app.schemas.book import BookCreateDTO, BookDTO, MultiBookDTO
+from app.schemas import UserRelationDTO, BookCreateDTO, BookDTO, MultiBookDTO
 from app.schemas.utils import Pagination
+from app.schemas.utils.filters import BookFilter
 from app.services import BookService
-from app.services.request import RequestService
 from app.utils import OAuth2Utility
 from app.utils.errors import Forbidden
 
@@ -22,15 +21,13 @@ book_router = APIRouter(
 async def create_book(
     book: BookCreateDTO,
     book_service: Annotated[BookService, Depends(Deps.book_service)],
-    # current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> BookDTO:
-    # if current_user.role == Role.employee or current_user.role == Role.admin:
-    print(book)
+    if current_user.role == Role.USER:
+        raise Forbidden
 
     db_book = await book_service.add_book(book)
     return db_book
-    # else:
-    #     raise Forbidden
 
 
 @book_router.post("/multi")
@@ -39,11 +36,11 @@ async def create_multi(
     book_service: Annotated[BookService, Depends(Deps.book_service)],
     current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> List[BookDTO]:
-    # if current_user.role == Role.employee or current_user.role == Role.admin:
+    if current_user.role == Role.USER:
+        raise Forbidden
+
     dto_books = await book_service.add_multi(books)
     return dto_books
-    # else:
-    #     raise Forbidden
 
 
 @book_router.get("")
@@ -68,7 +65,11 @@ async def update_book(
     book_id: int,
     new_book: BookCreateDTO,
     book_service: Annotated[BookService, Depends(Deps.book_service)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> BookDTO:
+    if current_user.role == Role.USER:
+        raise Forbidden
+
     updated_book = await book_service.update_book(book_id, new_book)
     return updated_book
 
@@ -77,23 +78,30 @@ async def set_book_cover(
     book_id: int,
     cover: Annotated[UploadFile, File()],
     book_service: Annotated[BookService, Depends(Deps.book_service)],
-):
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
+) -> BookDTO:
+    if current_user.role == Role.USER:
+        raise Forbidden
+
     covered_book = await book_service.set_cover_to_book(book_id, cover)
     return covered_book
 
 @book_router.delete("/{book_id}")
 async def delete_book(
-    book_id: int, book_service: Annotated[BookService, Depends(Deps.book_service)]
+    book_id: int, book_service: Annotated[BookService, Depends(Deps.book_service)],
+    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
 ) -> BookDTO:
+    if current_user.role == Role.USER:
+        raise Forbidden
+
     deleted_book = await book_service.delete_book(book_id)
     return deleted_book
 
-
-@book_router.post("/requests")
-async def create_request(
-    book_id: int,
-    current_user: Annotated[UserDTO, Depends(OAuth2Utility.get_current_user)],
-    request_service: Annotated[RequestService, Depends(Deps.request_service)]
-) -> RequestDTO:
-    request = await request_service.create_request(book_id, current_user.id)
-    return request
+@book_router.get("/filtered")
+async def get_filtered_books(
+    pg: Annotated[Pagination, Query()],
+    filters: Annotated[BookFilter, Depends()],
+    book_service: Annotated[BookService, Depends(Deps.book_service)],
+) -> MultiBookDTO:
+    filtered_books = await book_service.get_filtered_books(pg, filters)
+    return filtered_books

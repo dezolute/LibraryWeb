@@ -4,7 +4,7 @@ from sqlalchemy.orm import DeclarativeBase
 class Base(DeclarativeBase):
     __abstract__ = True
 
-    repr_cols_num = 10
+    repr_cols_num = 4
     repr_cols = tuple()
 
     def __repr__(self):

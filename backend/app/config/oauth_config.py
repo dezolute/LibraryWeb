@@ -1,6 +1,7 @@
 from typing import List
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class OauthConfig(BaseSettings):
     OAUTH_GOOGLE_CLIENT_SECRET: str
@@ -10,9 +11,10 @@ class OauthConfig(BaseSettings):
     def scopes(self) -> List[str]:
         return oauth_config.OAUTH_SCOPES.split(",")
 
-    class Config:
-        env_file = "../.env"
-        env_empty_ignore = True
-        extra = 'ignore'
+    model_config = SettingsConfigDict(
+        env_file="../.env",
+        env_ignore_empty=True,
+        extra='ignore'
+    )
 
 oauth_config = OauthConfig()

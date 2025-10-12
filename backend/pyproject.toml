@@ -23,6 +23,7 @@ dependencies = [
     "sqladmin[full] (>=0.21.0,<0.22.0)",
     "aiohttp (>=3.13.0,<4.0.0)",
     "redis (>=6.4.0,<7.0.0)",
+    "celery (>=5.5.3,<6.0.0)",
 ]
 
 [build-system]

@@ -6,10 +6,12 @@ import { CONFIG } from '../constants/config';
 const { Title } = Typography;
 const apiUrl = CONFIG.API_URL
 
+const icon = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%2Fid%2FOIP._wBb0zSW4SrlHG1jCjL2xQHaHa%3Fcb%3D12%26pid%3DApi&f=1&ipt=fe2589cb6fa4c7f72366e4e99b1f815178d7e52c33941d66ee25a51165187993&ipo=images"
+
 const statusColor = {
-  accepted: 'green',
+  accepted: 'orange',
   in_queued: 'purple',
-  awaiting: 'orange',
+  awaiting: 'green',
   given: 'green',
   returned: ''
 };
@@ -78,10 +80,19 @@ const UserAccount = () => {
   return (
     <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
       <div style={{ width: '400px', textAlign: 'center' }}>
-        <Title level={2}>Аккаунт пользователя</Title>
+        <Title level={3}>Аккаунт пользователя</Title>
         <Card>
           <Descriptions bordered column={1}>
             <Descriptions.Item label="Имя">{user.name}</Descriptions.Item>
+            <Descriptions.Item label="Аватарка">
+            <img style={{
+              width: 100,
+              height: 100,
+              margin: 0,
+            }}
+            loading='lazy'
+            src={user.icon == null ? icon : user.icon}></img>
+            </Descriptions.Item>
             <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
             <Descriptions.Item label="Роль">{user.role}</Descriptions.Item>
             <Descriptions.Item label="Дата регистрации">{user.created_at}</Descriptions.Item>

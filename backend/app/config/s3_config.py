@@ -1,4 +1,5 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class S3Config(BaseSettings):
     MINIO_ROOT_USER: str
@@ -7,10 +8,11 @@ class S3Config(BaseSettings):
     S3_ENDPOINT: str
     BUCKET_NAME: str
 
-    class Config:
-        env_file = "../.env"
-        env_ignore_empty = True
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file="../.env",
+        env_ignore_empty=True,
+        extra='ignore'
+    )
 
 
 s3_config = S3Config()

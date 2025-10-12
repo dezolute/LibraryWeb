@@ -11,8 +11,8 @@ from starlette import status
 
 from app.config import auth_config
 from app.repositories import UserRepository
-from app.schemas.user import UserRelationDTO
-from app.schemas.utils.token import PairTokens
+from app.schemas import UserRelationDTO
+from app.schemas.utils import PairTokens
 
 
 class TokenType(Enum):
@@ -31,6 +31,10 @@ class OAuth2Utility:
     @classmethod
     def get_hashed_password(cls, plain_password: str) -> str:
         return cls.pwd_context.hash(plain_password)
+
+
+
+
 
     @staticmethod
     def create_token(data: dict, token_type: TokenType, expires_delta: Optional[timedelta] = None) -> str:
@@ -95,7 +99,7 @@ class OAuth2Utility:
                 token, auth_config.JWT_SECRET, algorithms=[auth_config.JWT_ALGORITHM]
             )
 
-            db_user = await UserRepository().find(email=payload.get("sub"))
+            db_user = await UserRepository().find(email=payload.get("sub"), verified=True)
             user = UserRelationDTO.model_validate(db_user)
 
             if user is None:

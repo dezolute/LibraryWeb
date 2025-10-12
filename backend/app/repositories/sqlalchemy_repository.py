@@ -1,12 +1,12 @@
 from typing import List, TypeVar, Generic, Union, Optional
 
-from requests import session
 from sqlalchemy import update, delete, select, func
 from sqlalchemy.orm import InstrumentedAttribute
 
 from app.config.database import db
 from app.repositories import AbstractRepository
 from app.models import Base
+from app.schemas.utils.filters import BookFilter
 
 ModelType = TypeVar("ModelType", bound=Base)
 
@@ -91,8 +91,14 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
 
             return result.unique().scalars().all(), total.scalar()
 
-    async def create_employee(self, data: dict) -> ModelType:
+    async def find_books(
+            self,
+            book_filter: BookFilter,
+            limit: int = 100,
+            offset: int = 0,
+            order_by: str = None,
+    ) -> (List[ModelType], int):
         pass
 
-    async def create_admin(self, data: dict) -> ModelType:
+    async def find_overdue(self):
         pass

@@ -1,8 +1,8 @@
 """init tables
 
-Revision ID: 6510cf19c69c
+Revision ID: 01d49fed9d72
 Revises:
-Create Date: 2025-09-28 01:41:33.418016
+Create Date: 2025-10-12 20:08:12.466350
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "6510cf19c69c"
+revision: str = "01d49fed9d72"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,8 +28,9 @@ def upgrade() -> None:
         sa.Column("title", sa.String(), nullable=False),
         sa.Column("author", sa.String(), nullable=False),
         sa.Column(
-            "priority", sa.Enum("low", "high", name="priority"), nullable=False
+            "priority", sa.Enum("LOW", "HIGH", name="priority"), nullable=False
         ),
+        sa.Column("cover", sa.String(), nullable=True),
         sa.Column("count", sa.Integer(), nullable=False),
         sa.Column("year_publication", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -41,18 +42,23 @@ def upgrade() -> None:
         sa.Column("email", sa.String(), nullable=False),
         sa.Column(
             "role",
-            sa.Enum("user", "admin", "employee", name="role"),
+            sa.Enum("USER", "ADMIN", "EMPLOYEE", name="role"),
             nullable=False,
         ),
+        sa.Column("icon", sa.String(), nullable=True),
         sa.Column("encrypted_password", sa.String(), nullable=False),
+        sa.Column("personal_id_number", sa.String(), nullable=True),
+        sa.Column("library_card", sa.String(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(),
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.Column("verified", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("email"),
+        sa.UniqueConstraint("personal_id_number"),
     )
     op.create_table(
         "requests",
@@ -62,11 +68,11 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "accepted",
-                "in_queued",
-                "awaiting",
-                "given",
-                "returned",
+                "ACCEPTED",
+                "IN_QUEUED",
+                "AWAITING",
+                "GIVEN",
+                "RETURNED",
                 name="status",
             ),
             nullable=False,
@@ -80,7 +86,8 @@ def upgrade() -> None:
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
-            ["book_id"], ["books.id"], onupdate="CASCADE", ondelete="CASCADE"
+            ["book_id"],
+            ["books.id"],
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],

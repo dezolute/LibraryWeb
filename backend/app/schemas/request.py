@@ -1,11 +1,12 @@
-from typing import List
-from pydantic import BaseModel, ConfigDict
+from typing import List, Annotated, Literal, Any, Callable, Self
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
-from app.models.types import Status
-from app.schemas.book import BookDTO
 
-class UserDTO(BaseModel):
-    pass
+from pydantic.main import IncEx
+
+from app.models.types import Status
+from app.schemas import BookDTO
+
 
 class RequestDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -24,7 +25,7 @@ class RequestSemiRelationDTO(RequestDTO):
 
 
 class RequestRelationDTO(RequestSemiRelationDTO):
-    user: UserDTO
+    user: dict
 
 
 class MultiRequestDTO(BaseModel):
