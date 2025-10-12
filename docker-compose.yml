@@ -1,6 +1,7 @@
 networks:
   dev:
   backend:
+  minio-net:
 
 services:
   api:
@@ -11,6 +12,8 @@ services:
     environment:
       HOST: "0.0.0.0"
       POSTGRES_HOST: "db"
+      REDIS_HOST: "redis"
+      S3_ENDPOINT: "http://minio:9000"
     restart: always
     depends_on:
       - db
@@ -41,30 +44,47 @@ services:
     networks:
       - backend
 
-  # redis:
-  #   image: redis:alpine
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis-data:/data
-  #   networks:
-  #     - backend
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
 
-  mimio:
+  minio:
     image: minio/minio:latest
     restart: always
     volumes:
-      - minio-data:/data
+      - minio_data:/data
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER?Variable not set}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD?Variable not set}
-    command: server /dada --console-address ":9001"
+    command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
     networks:
+      - minio-net
       - backend
+
+  mc:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5 &&
+      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb local/libaryweb &&
+      mc anonymous set download local/libaryweb
+      mc cp ./default/cover.jpg local/libaryweb/cover.jpg
+      mc cp ./default/icon.jpg local/libaryweb/icon.jpg
+      "
+    networks:
+      - minio-net
 
   nginx:
     image: nginx:stable-alpine
@@ -81,5 +101,5 @@ services:
 
 volumes:
   postgres-data:
-  # redis-data:
-  minio-data:
+  minio_data:
+  redis-data:

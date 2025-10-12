@@ -1,8 +1,10 @@
 import { Form, Input, Button, Typography, Card, Alert } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { CONFIG } from '../constants/config'
 
 const { Title } = Typography;
+const apiUrl = CONFIG.API_URL
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -10,7 +12,7 @@ const LoginForm = () => {
     try {
       const request = `grant_type=password&username=${values.email}&password=${values.password}&scope=&client_id=string&client_secret=secret_key`
       
-      const response = await fetch('/api/token', {
+      const response = await fetch(`${apiUrl}/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: request,

@@ -46,23 +46,3 @@ class UserRepository(SqlAlchemyRepository):
 
             result = await session.execute(query)
             return result.unique().scalars().all()
-
-    async def create_employee(self, data: dict) -> ModelType:
-        async with db.get_session() as session:
-            model = self.model(**data)
-            model.role = Role.admin
-
-            session.add(model)
-            await session.commit()
-            await session.refresh(model)
-            return model
-
-    async def create_admin(self, data: dict) -> ModelType:
-        async with db.get_session() as session:
-            model = self.model(**data)
-            model.role = Role.admin
-
-            session.add(model)
-            await session.commit()
-            await session.refresh(model)
-            return model

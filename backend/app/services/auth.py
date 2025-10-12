@@ -1,22 +1,23 @@
-from datetime import timedelta
 from typing import Callable
 
 from fastapi import HTTPException
 from passlib.context import CryptContext
 from starlette import status
 
+from app.config.database import RedisEnum
 from app.repositories import AbstractRepository
-from app.schemas import UserCreateDTO, UserDTO, UserUpdateDTO
-from app.schemas.utils import Token
+from app.schemas.utils import PairTokens
 from app.utils.auth.oauth2 import OAuth2Utility
+from app.modules import RedisRepository
 
 
 class AuthService:
     def __init__(self, user_repository: Callable[[], AbstractRepository]):
         self.user_repository: AbstractRepository = user_repository()
+        self.redis: RedisRepository = RedisRepository(RedisEnum.TOKENS)
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    async def login(self, form_data) -> Token:
+    async def login(self, form_data) -> PairTokens:
         error = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -24,41 +25,34 @@ class AuthService:
         )
 
         user = await self.user_repository.find(email=form_data.username)
-        print(user)
         if user is None:
             raise error
+
         is_compair = OAuth2Utility.verify_password(
             form_data.password, user.encrypted_password
         )
+
         if not is_compair:
             raise error
 
-        access_token = OAuth2Utility.create_access_token(
+        tokens = OAuth2Utility.get_tokens(
             data={
                 "sub": user.email,
                 "name": user.name,
-            },
-            expires_delta=timedelta(minutes=30),
+            }
         )
 
-        return Token(access_token=access_token, token_type="bearer")
+        await self.redis.set_refresh_token(token_id=tokens.token_id, refresh_token=tokens.refresh_token)
 
-    async def add_user(self, user: UserCreateDTO) -> UserDTO:
-        if user.password != user.confirm_password:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Passwords do not match",
-            )
+        return tokens
 
-        user_dict = user.model_dump()
-        encrypted_password = OAuth2Utility.get_hashed_password(
-            user_dict.get("password")
-        )
+    async def refresh_tokens(self, refresh_token) -> PairTokens:
+        payload = OAuth2Utility.get_token_payload(refresh_token)
+        data = {
+            "sub": payload["sub"],
+            "name": payload["name"],
+        }
+        tokens = OAuth2Utility.get_tokens(data=data)
+        await self.redis.set_refresh_token(tokens.token_id, tokens.refresh_token)
 
-        clear_user = UserUpdateDTO.model_validate(user_dict)
-        user_dict = clear_user.model_dump()
-        user_dict.setdefault("encrypted_password", encrypted_password)
-
-        db_user = await self.user_repository.create(user_dict)
-
-        return UserDTO.model_validate(db_user)
+        return tokens

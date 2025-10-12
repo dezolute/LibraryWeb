@@ -1,14 +1,16 @@
 import { Form, Input, Button, Typography, Card } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { CONFIG } from '../constants/config'
 
 const { Title } = Typography;
+const apiUrl = CONFIG.API_URL
 
 const RegisterForm = () => {
   const navigate = useNavigate()
   const onFinish = async (values) => {
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch(`${apiUrl}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),

@@ -9,17 +9,17 @@ import UserAccount from './components/UserAccount';
 import BookPage from './components/BookPage';
 
 const App = () => (
-  <Router>
-    <Routes>
-      <Route path="/" element={<MainLayout><Home /></MainLayout>} />
-      <Route path="/login" element={<MainLayout><LoginForm /></MainLayout>} />
-      <Route path="/register" element={<MainLayout><RegisterForm /></MainLayout>} />
-      <Route path="/books" element={<MainLayout><BookCatalog /></MainLayout>} />
-      <Route path="/account" element={<MainLayout><UserAccount /></MainLayout>} />
-      <Route path="/book/:id" element={<MainLayout><BookPage /></MainLayout>} />
-      <Route path="/auth/google"/>
-    </Routes>
-  </Router>
+    <Router>
+      <Routes>
+        <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+        <Route path="/login" element={<MainLayout><LoginForm /></MainLayout>} />
+        <Route path="/register" element={<MainLayout><RegisterForm /></MainLayout>} />
+        <Route path="/books" element={<MainLayout><BookCatalog /></MainLayout>} />
+        <Route path="/account" element={<MainLayout><UserAccount /></MainLayout>} />
+        <Route path="/book/:id" element={<MainLayout><BookPage /></MainLayout>} />
+        <Route path="/auth/google"/>
+      </Routes>
+    </Router>
 );
 
 export default App;

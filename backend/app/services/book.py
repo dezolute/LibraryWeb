@@ -1,9 +1,17 @@
+import os.path
 from typing import Callable, List
 
-from fastapi import HTTPException
+import aiohttp
+from fastapi import HTTPException, UploadFile
 from starlette import status
+
+from app.modules.s3_files import upload_file_to_s3
 from app.repositories.base_repository import AbstractRepository
-from app.schemas.book import BookDTO, BookCreateDTO, MultiBookDTO
+from app.schemas import BookDTO, BookCreateDTO, MultiBookDTO
+from app.schemas.utils import Pagination
+from app.schemas.utils.filters import BookFilter
+
+API_URL = "http://localhost/api"
 
 
 class BookService:
@@ -53,7 +61,8 @@ class BookService:
         updated_book = await self.book_repository.update(book_dict, id=book_id)
         updated_book = BookDTO.model_validate(updated_book)
         if db_book.count == 0 and book.count != 0:
-            pass
+            async with aiohttp.ClientSession() as session:
+                await session.post(f"{API_URL}/requests/notify", data=book_id)
 
         return updated_book
 
@@ -66,3 +75,31 @@ class BookService:
             )
 
         return BookDTO.model_validate(book)
+
+    async def set_cover_to_book(self, book_id: int, file: UploadFile) -> BookDTO:
+        path_to_file = f'{os.path.abspath('.')}\\temp\\new_cover.{file.filename.split('.')[-1]}'
+        with open(path_to_file, 'wb') as f:
+            f.write(await file.read())
+
+        url = upload_file_to_s3(path_to_file)
+
+        with open(path_to_file, 'wb') as f:
+            f.write(bytes(0))
+
+        book = await self.book_repository.update({ "cover": url }, id=book_id)
+
+        book_db = BookDTO.model_validate(book)
+        return book_db
+
+    async def get_filtered_books(self, pg: Pagination, filters: BookFilter) -> MultiBookDTO:
+        books, total = self.book_repository.find_books(
+            limit=pg.limit,
+            offset=pg.offset,
+            order_by=pg.order_by,
+            filters=filters
+        )
+
+        return MultiBookDTO(
+            items=[BookDTO.model_validate(row) for row in books],
+            total=total,
+        )

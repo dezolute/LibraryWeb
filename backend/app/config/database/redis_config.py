@@ -1,12 +1,10 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class S3Config(BaseSettings):
-    MINIO_ROOT_USER: str
-    MINIO_ROOT_PASSWORD: str
-    MINIO_SERVER_URL: str
-    S3_ENDPOINT: str
-    BUCKET_NAME: str
+class RedisConfig(BaseSettings):
+    REDIS_HOST: str
+    REDIS_PORT: int
+    REDIS_DB: int
 
     model_config = SettingsConfigDict(
         env_file="../.env",
@@ -14,5 +12,4 @@ class S3Config(BaseSettings):
         extra='ignore'
     )
 
-
-s3_config = S3Config()
+redis_config = RedisConfig()

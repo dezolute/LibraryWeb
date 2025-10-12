@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ConfigDB(BaseSettings):
@@ -16,10 +16,11 @@ class ConfigDB(BaseSettings):
             f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
 
-    class Config:
-        env_file = "../.env"
-        env_ignore_empty = True
-        extra = "ignore"
+    model_config = SettingsConfigDict(
+        env_file="../.env",
+        env_ignore_empty=True,
+        extra='ignore'
+    )
 
 
 db_config = ConfigDB()
