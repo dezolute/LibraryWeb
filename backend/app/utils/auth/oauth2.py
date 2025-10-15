@@ -1,5 +1,5 @@
-import uuid
 from datetime import timedelta, datetime, timezone
+from enum import Enum
 from typing import Annotated, Optional
 
 import jwt
@@ -10,11 +10,12 @@ from starlette import status
 
 from app.config import auth_config
 from app.repositories import UserRepository
-from app.schemas.user import UserRelationDTO
+from app.schemas import UserRelationDTO
+from app.schemas.utils import Token
 
 
 class OAuth2Utility:
-    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth", refreshUrl="auth/refresh")
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     @classmethod
@@ -26,7 +27,7 @@ class OAuth2Utility:
         return cls.pwd_context.hash(plain_password)
 
     @staticmethod
-    def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    def create_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()
 
         expire = (
@@ -35,8 +36,6 @@ class OAuth2Utility:
 
         to_encode.update({
             "exp": expire,
-            "type": "access-token",
-            "jti": str(uuid.uuid4()),
         })
         encoded_jwt = jwt.encode(
             to_encode, auth_config.JWT_SECRET, algorithm=auth_config.JWT_ALGORITHM
@@ -44,15 +43,28 @@ class OAuth2Utility:
         return encoded_jwt
 
     @staticmethod
-    def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
-        to_encode = data.copy()
-
-        expire = (
-            datetime.now(timezone.utc) + expires_delta if expires_delta else timedelta(minutes=15)
+    def get_tokens(data: dict) -> Token:
+        return Token(
+            access_token=OAuth2Utility.create_token(
+                data=data,
+                expires_delta=timedelta(minutes=30)
+            ),
+            token_type='Bearer'    
         )
 
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode()
+    @staticmethod
+    def get_token_payload(token: str) -> dict:
+        try:
+            payload = jwt.decode(
+                token, auth_config.JWT_SECRET, algorithms=[auth_config.JWT_ALGORITHM]
+            )
+
+            return payload
+        except jwt.InvalidTokenError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Bad token",
+            )
 
     @staticmethod
     async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -66,11 +78,12 @@ class OAuth2Utility:
                 token, auth_config.JWT_SECRET, algorithms=[auth_config.JWT_ALGORITHM]
             )
 
-            db_user = await UserRepository().find(email=payload.get("sub"))
+            db_user = await UserRepository().find(email=payload.get("sub"), verified=True)
+            if db_user is None:
+                raise credentials_exception
+
             user = UserRelationDTO.model_validate(db_user)
 
-            if user is None:
-                raise credentials_exception
         except jwt.InvalidTokenError:
             raise credentials_exception
 

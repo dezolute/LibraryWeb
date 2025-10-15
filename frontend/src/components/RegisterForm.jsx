@@ -1,14 +1,18 @@
-import { Form, Input, Button, Typography, Card } from 'antd';
-import { MailOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import '@ant-design/v5-patch-for-react-19';
+import { Form, Input, Button, Typography, Card, Modal } from 'antd';
+import { MailOutlined, LockOutlined, UserOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { CONFIG } from '../constants/config';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const apiUrl = CONFIG.API_URL;
 
 const RegisterForm = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
   const onFinish = async (values) => {
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch(`${apiUrl}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -16,22 +20,44 @@ const RegisterForm = () => {
 
       const result = await response.json();
       console.log('Регистрация успешна:', result);
-      navigate('/login')
+      navigate('/login');
     } catch (error) {
-      alert('Ошибка регистрации:', error.message);
+      Modal.error({
+        title: 'Ошибка регистрации',
+        content: error.message || 'Не удалось создать аккаунт.',
+      });
     }
   };
 
   return (
-      <Card style={{ width: 400 }}>
-        <Title level={3} style={{ textAlign: 'center', marginTop: 10 }}>Регистрация</Title>
-        <Form layout="vertical" onFinish={onFinish}>
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+      <Card
+        bordered={false}
+        style={{
+          width: 440,
+          padding: '32px 24px',
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f0f2f5 100%)',
+        }}
+      >
+        <Title level={3} style={{ textAlign: 'center', marginBottom: 30 }}>
+          <UserAddOutlined style={{ marginRight: 8 }} />
+          Регистрация
+        </Title>
+
+        <Form layout="vertical" onFinish={onFinish} requiredMark={false}>
           <Form.Item
             name="name"
-            label="Имя"
-            rules={[{ required: true, message: 'Введите имя!' }]}
+            label="ФИО"
+            rules={[{ required: true, message: 'Введите ФИО!' }]}
           >
-            <Input prefix={<UserOutlined />} size='large' placeholder="Ваше имя" />
+            <Input
+              prefix={<UserOutlined />}
+              size="large"
+              placeholder="Ваше ФИО"
+              autoComplete="name"
+            />
           </Form.Item>
 
           <Form.Item
@@ -42,7 +68,12 @@ const RegisterForm = () => {
               { type: 'email', message: 'Некорректный формат email!' },
             ]}
           >
-            <Input prefix={<MailOutlined />} size='large' placeholder="Email" />
+            <Input
+              prefix={<MailOutlined />}
+              size="large"
+              placeholder="Email"
+              autoComplete="email"
+            />
           </Form.Item>
 
           <Form.Item
@@ -52,23 +83,27 @@ const RegisterForm = () => {
               { required: true, message: 'Введите пароль!' },
               () => ({
                 validator(_, value) {
-                  if (value.length >= 8) {
+                  if (!value || value.length >= 8) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Не менее 8 символов!'))
-                }
-              })
+                  return Promise.reject(new Error('Пароль должен быть не менее 8 символов'));
+                },
+              }),
             ]}
             hasFeedback
           >
-            <Input.Password prefix={<LockOutlined />} size='large' placeholder="Пароль" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              size="large"
+              placeholder="Пароль"
+              autoComplete="new-password"
+            />
           </Form.Item>
 
           <Form.Item
             name="confirm_password"
             label="Подтвердите пароль"
             dependencies={['password']}
-            hasFeedback
             rules={[
               { required: true, message: 'Подтвердите пароль!' },
               ({ getFieldValue }) => ({
@@ -81,27 +116,37 @@ const RegisterForm = () => {
               }),
               () => ({
                 validator(_, value) {
-                  if (value.length >= 8) {
+                  if (!value || value.length >= 8) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Не менее 8 символов!'))
-                }
-              })
+                  return Promise.reject(new Error('Пароль должен быть не менее 8 символов'));
+                },
+              }),
             ]}
+            hasFeedback
           >
-            <Input.Password placeholder="Повторите пароль" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              size="large"
+              placeholder="Повторите пароль"
+              autoComplete="new-password"
+            />
           </Form.Item>
 
-          <Form.Item style={{ textAlign: 'center', marginBottom: 5}}>
-            <Button type="primary" size='large' htmlType="submit">
+          <Form.Item style={{ marginBottom: 12 }}>
+            <Button type="primary" size="large" block htmlType="submit">
               Зарегистрироваться
             </Button>
           </Form.Item>
-          <Form.Item style={{ textAlign: 'center' }}>
-            Есть аккаунт? <Link to="/login">Войдите</Link>
+
+          <Form.Item style={{ textAlign: 'center', marginBottom: 0 }}>
+            <Text type="secondary">
+              Уже есть аккаунт? <Link to="/login">Войдите</Link>
+            </Text>
           </Form.Item>
         </Form>
       </Card>
+    </div>
   );
 };
 

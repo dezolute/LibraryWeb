@@ -1,30 +1,34 @@
-from typing import TypeVar, Generic, List
-from pydantic import BaseModel
 from datetime import datetime
+from typing import List, Annotated, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.models.types import Status
-from app.schemas.book import BookDTO
+from app.schemas import BookDTO
 
-UserDTO = TypeVar("UserDTO", bound=BaseModel)
 
-class RequestDTO(BaseModel, Generic[UserDTO]):
+class RequestDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    user_id: int
-    book_id: int
+    user_id: Annotated[int, Field(ge=1)]
+    book_id: Annotated[int, Field(ge=1)]
     status: Status
+    given_at: Annotated[Optional[datetime], Field(None)]
+    returned_at: Annotated[Optional[datetime], Field(None)]
     created_at: datetime
-    updated_at: datetime
 
-    class Config:
-        from_attributes = True
 
 class RequestSemiRelationDTO(RequestDTO):
     book: BookDTO
 
-class RequestRelationDTO(RequestSemiRelationDTO):
-    user: UserDTO
 
-class MultiRequestDTO(RequestDTO[RequestRelationDTO]):
+class RequestRelationDTO(RequestSemiRelationDTO):
+    user: dict
+
+
+class MultiRequestDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     items: List[RequestRelationDTO]
     total: int
-    class Config:
-        from_attributes = True

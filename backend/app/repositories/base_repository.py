@@ -29,9 +29,9 @@ class AbstractRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def create_employee(self, data: dict):
+    async def find_books(self, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
-    async def create_admin(self, data: dict):
+    async def find_overdue(self, **kwargs):
         raise NotImplementedError

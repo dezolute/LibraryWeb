@@ -14,25 +14,27 @@ admin_router = APIRouter(
     tags=["Admin"]
 )
 
+
 @admin_router.post("")
 async def add_admin(
-    admin: UserCreateDTO,
-    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
-    user_service: Annotated[UserService, Depends(Deps.user_service)]
+        admin: UserCreateDTO,
+        current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
+        user_service: Annotated[UserService, Depends(Deps.user_service)]
 ):
-    if current_user.role == Role.admin:
+    if current_user.role == Role.ADMIN:
         db_admin = await user_service.add_admin(admin)
         return db_admin
     else:
         raise Forbidden
 
+
 @admin_router.post("/employee")
 async def add_employee(
-    employee: UserCreateDTO,
-    current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
-    user_service: Annotated[UserService, Depends(Deps.user_service)]
+        employee: UserCreateDTO,
+        current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
+        user_service: Annotated[UserService, Depends(Deps.user_service)]
 ):
-    if current_user.role == Role.admin:
+    if current_user.role == Role.ADMIN:
         db_employee = await user_service.add_employee(employee)
         return db_employee
     else:

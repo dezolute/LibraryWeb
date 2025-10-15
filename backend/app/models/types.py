@@ -1,20 +1,20 @@
 from enum import Enum
 
 
-class Role(Enum):
-    user = "user"
-    admin = "admin"
-    employee = "employee"
+class Role(str, Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+    EMPLOYEE = "EMPLOYEE"
 
 
-class Priority(Enum):
-    low = "low"
-    high = "high"
+class Priority(str, Enum):
+    LOW = "LOW"
+    HIGH = "HIGH"
 
 
-class Status(Enum):
-    accepted = "accepted"
-    in_queued = "in_queued"
-    awaiting = "awaiting"
-    given = "given"
-    returned = "returned"
+class Status(str, Enum):
+    ACCEPTED = "ACCEPTED"
+    IN_QUEUED = "IN_QUEUED"
+    AWAITING = "AWAITING"
+    GIVEN = "GIVEN"
+    RETURNED = "RETURNED"

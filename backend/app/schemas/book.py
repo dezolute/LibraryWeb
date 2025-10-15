@@ -1,26 +1,28 @@
-from typing import List
+from typing import List, Annotated, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.models.types import Priority
 
 
 class BookCreateDTO(BaseModel):
-    title: str = Field(max_length=100)
-    author: str = Field(max_length=100)
+    title: Annotated[str, Field(max_length=100)]
+    author: Annotated[str, Field(max_length=100)]
+    publisher: Annotated[str, Field(max_length=100)]
     priority: Priority
-    count: int = Field(default=0)
-    year_publication: int = Field(ge=2000)
+    count: Annotated[int, Field(default=0)]
+    year_publication: Annotated[int, Field(ge=1900)]
 
 
 class BookDTO(BookCreateDTO):
-    id: int
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True
+    id: int
+    cover: Optional[str]
+
 
 class MultiBookDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     items: List[BookDTO]
     total: int
-    class Config:
-        from_attributes = True

@@ -1,41 +1,70 @@
-import { Form, Input, Button, Typography, Card, Alert } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
+import '@ant-design/v5-patch-for-react-19';
+import { Form, Input, Button, Typography, Card, Modal } from 'antd';
+import { MailOutlined, LockOutlined, LoginOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { CONFIG } from '../constants/config';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const apiUrl = CONFIG.API_URL;
 
 const LoginForm = () => {
   const navigate = useNavigate();
+
   const onFinish = async (values) => {
     try {
-      const request = `grant_type=password&username=${values.email}&password=${values.password}&scope=&client_id=string&client_secret=secret_key`
-      
-      const response = await fetch('/api/token', {
+      const request = new URLSearchParams({
+        grant_type: 'password',
+        username: values.email,
+        password: values.password,
+        scope: '',
+        client_id: 'string',
+        client_secret: 'secret_key',
+      });
+
+      const response = await fetch(`${apiUrl}/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: request,
+        body: request.toString(),
       });
+
       const result = await response.json();
-      localStorage.setItem('access_token', result['access_token'])
-      if (response.ok) {
-        navigate('/account')
+
+      if (!response.ok || !result.access_token) {
+        throw new Error(result.detail || response.statusText);
       }
-      else {
-        <Alert message="Error" description={response.statusText} closable showIcon/>
-      }
+
+      localStorage.setItem('access_token', result.access_token);
+      navigate('/account');
     } catch (error) {
-      <Alert message="Error" description={error.message} closable showIcon/>
+      Modal.error({
+        title: 'Ошибка входа',
+        content: error.message || 'Не удалось авторизоваться.',
+      });
     }
   };
 
   return (
-      <Card style={{ width: 400 }}>
-        <Title level={3} style={{ textAlign: 'center' }}>Вход</Title>
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+      <Card
+        bordered={false}
+        style={{
+          width: 420,
+          padding: '32px 24px',
+          borderRadius: 16,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+          background: 'linear-gradient(135deg, #ffffff 0%, #f0f2f5 100%)',
+        }}
+      >
+        <Title level={3} style={{ textAlign: 'center', marginBottom: 30 }}>
+          <LoginOutlined style={{ marginRight: 8 }} />
+          Вход в систему
+        </Title>
+
         <Form
           name="login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
           layout="vertical"
+          onFinish={onFinish}
+          requiredMark={false}
         >
           <Form.Item
             name="email"
@@ -45,7 +74,12 @@ const LoginForm = () => {
               { type: 'email', message: 'Некорректный формат email!' },
             ]}
           >
-            <Input prefix={<MailOutlined />} size='large' placeholder="Email" />
+            <Input
+              prefix={<MailOutlined />}
+              size="large"
+              placeholder="Введите email"
+              autoComplete="email"
+            />
           </Form.Item>
 
           <Form.Item
@@ -55,27 +89,36 @@ const LoginForm = () => {
               { required: true, message: 'Введите пароль!' },
               () => ({
                 validator(_, value) {
-                  if (value.length >= 8) {
+                  if (!value || value.length >= 8) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Не менее 8 символов!'))
-                }
-              })
+                  return Promise.reject(new Error('Пароль должен быть не менее 8 символов'));
+                },
+              }),
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} size='large' placeholder="Пароль" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              size="large"
+              placeholder="Введите пароль"
+              autoComplete="current-password"
+            />
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 5, textAlign: 'center' }}>
-            <Button type="primary" size='large' htmlType="submit">
+          <Form.Item style={{ marginBottom: 12 }}>
+            <Button type="primary" size="large" block htmlType="submit">
               Войти
             </Button>
           </Form.Item>
-          <Form.Item style={{ textAlign: 'center' }}>
-            Нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
+
+          <Form.Item style={{ textAlign: 'center', marginBottom: 0 }}>
+            <Text type="secondary">
+              Нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
+            </Text>
           </Form.Item>
         </Form>
       </Card>
+    </div>
   );
 };
 
