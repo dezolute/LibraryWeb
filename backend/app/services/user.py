@@ -1,15 +1,10 @@
 import asyncio
-import hashlib
 import os
 import secrets
 from typing import Callable
 
 from fastapi import UploadFile, HTTPException
-import re
 
-from poetry.console.commands import self
-
-from app.config.database import RedisEnum
 from app.models.types import Role
 from app.modules import RedisRepository
 from app.modules.email import send_verify_email
@@ -22,11 +17,12 @@ from app.utils import OAuth2Utility
 class UserService:
     def __init__(self, user_repository: Callable[[], AbstractRepository]):
         self.user_repository: AbstractRepository = user_repository()
-        self.redis: RedisRepository = RedisRepository(RedisEnum.VERIFY_EMAIL)
-        self.verify: RedisRepository = RedisRepository(RedisEnum.VERIFY_EMAIL)
+        self.redis: RedisRepository = RedisRepository()
 
     async def set_icon_to_user(self, user_id: int, file: UploadFile):
-        path_to_file = f'{os.path.abspath('.')}\\temp\\new_icon.{file.filename.split('.')[-1]}'
+        ext = os.path.splitext(file.filename)[-1]
+        path_to_file = os.path.join(os.path.abspath("."), "temp", f"new_icon{ext}")
+
         with open(path_to_file, 'wb') as f:
             f.write(await file.read())
 
@@ -38,6 +34,13 @@ class UserService:
 
         book_db = UserDTO.model_validate(book)
         return book_db
+
+    async def get_orm_data(self, **kwargs):
+        user = await self.user_repository.find(**kwargs)
+        if user is None:
+            raise HTTPException(status_code=404)
+
+        return user
 
     async def set_verify_email_to_user(self, token: str) -> UserDTO:
         redis_email = await self.redis.get_verify_tokens(token)
@@ -65,7 +68,7 @@ class UserService:
             to=db_user.email,
             token=token
         ))
-        await self.verify.set_verify_tokens(token_id=token, email=db_user.email)
+        await self.redis.set_verify_tokens(token_id=token, email=db_user.email)
 
         return UserDTO.model_validate(db_user)
 

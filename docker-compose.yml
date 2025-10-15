@@ -58,7 +58,7 @@ services:
     image: minio/minio:latest
     restart: always
     volumes:
-      - minio_data:/data
+      - minio-data:/data
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER?Variable not set}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD?Variable not set}
@@ -77,11 +77,9 @@ services:
     entrypoint: >
       /bin/sh -c "
       sleep 5 &&
-      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc alias set local http://minio:9000 dezolute dezolute &&
       mc mb local/libaryweb &&
       mc anonymous set download local/libaryweb
-      mc cp ./default/cover.jpg local/libaryweb/cover.jpg
-      mc cp ./default/icon.jpg local/libaryweb/icon.jpg
       "
     networks:
       - minio-net
@@ -101,5 +99,5 @@ services:
 
 volumes:
   postgres-data:
-  minio_data:
+  minio-data:
   redis-data:

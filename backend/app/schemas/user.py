@@ -7,8 +7,9 @@ from app.models.types import Role
 from app.schemas.request import RequestSemiRelationDTO
 
 
+
 class UserUpdateDTO(BaseModel):
-    name: Annotated[str, Field(max_length=100)]
+    name: Annotated[str, Field(max_length=100, pattern=r"^([А-Я]{1}[а-я]+ ){2}[А-Я]{1}[а-яА-Я]+$")]
     email: EmailStr
 
 

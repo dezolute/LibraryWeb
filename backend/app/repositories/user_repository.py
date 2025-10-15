@@ -5,9 +5,8 @@ from sqlalchemy.orm import selectinload
 
 from app.config.database import db
 from app.models import RequestORM
-from app.models.types import Role
-from app.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType
 from app.models.user import UserORM
+from app.repositories.sqlalchemy_repository import SqlAlchemyRepository, ModelType
 
 
 class UserRepository(SqlAlchemyRepository):
@@ -29,7 +28,7 @@ class UserRepository(SqlAlchemyRepository):
             return result.scalars().first()
 
     async def find_all(
-        self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
+            self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
     ) -> List[ModelType]:
         async with db.get_session() as session:
             query = (

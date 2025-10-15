@@ -4,8 +4,8 @@ from sqlalchemy import update, delete, select, func
 from sqlalchemy.orm import InstrumentedAttribute
 
 from app.config.database import db
-from app.repositories import AbstractRepository
 from app.models import Base
+from app.repositories import AbstractRepository
 from app.schemas.utils.filters import BookFilter
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -75,7 +75,7 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
             return result.scalars().first()
 
     async def find_all(
-        self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
+            self, limit: int = 100, offset: int = 0, order_by: str = None, **filters,
     ) -> (List[ModelType], int):
         async with db.get_session() as session:
             query = (
