@@ -1,8 +1,8 @@
 """init tables
 
-Revision ID: 01d49fed9d72
+Revision ID: c307261c361c
 Revises:
-Create Date: 2025-10-12 20:08:12.466350
+Create Date: 2025-10-13 21:50:02.412745
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "01d49fed9d72"
+revision: str = "c307261c361c"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("title", sa.String(), nullable=False),
         sa.Column("author", sa.String(), nullable=False),
+        sa.Column("publisher", sa.String(), nullable=False),
         sa.Column(
             "priority", sa.Enum("LOW", "HIGH", name="priority"), nullable=False
         ),
@@ -47,8 +48,6 @@ def upgrade() -> None:
         ),
         sa.Column("icon", sa.String(), nullable=True),
         sa.Column("encrypted_password", sa.String(), nullable=False),
-        sa.Column("personal_id_number", sa.String(), nullable=True),
-        sa.Column("library_card", sa.String(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(),
@@ -58,7 +57,6 @@ def upgrade() -> None:
         sa.Column("verified", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("email"),
-        sa.UniqueConstraint("personal_id_number"),
     )
     op.create_table(
         "requests",
@@ -77,14 +75,14 @@ def upgrade() -> None:
             ),
             nullable=False,
         ),
-        sa.Column("return_by", sa.DateTime(), nullable=False),
+        sa.Column("given_at", sa.DateTime(), nullable=True),
+        sa.Column("returned_at", sa.DateTime(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(),
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
             ["book_id"],
             ["books.id"],

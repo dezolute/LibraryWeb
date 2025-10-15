@@ -3,9 +3,11 @@ import smtplib
 from email.message import EmailMessage
 
 from jinja2 import Environment, FileSystemLoader
+
 from app.config import email_config
 
 env = Environment(loader=FileSystemLoader("app/modules/email/templates"))
+
 
 def send_email(to, subject, html):
     msg = EmailMessage()
@@ -19,18 +21,20 @@ def send_email(to, subject, html):
         smtp.login(email_config.STMP_EMAIL_ADDRESS, email_config.STMP_PASSWORD)
         smtp.send_message(msg)
 
+
 async def send_notification_email(to: str, book_title: str) -> bool:
     try:
         template = env.get_template("email_notification.html")
         html = template.render(book_title=book_title)
         subject = "Книга в наличии"
 
-        await asyncio.to_thread(send_email,to,subject, html)
+        await asyncio.to_thread(send_email, to, subject, html)
 
         return True
     except Exception as e:
         print(f"Ошибка при отправке письма: {e}")
         return False
+
 
 async def send_verify_email(to: str, token: str) -> bool:
     try:

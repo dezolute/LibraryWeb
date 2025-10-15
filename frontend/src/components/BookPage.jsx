@@ -1,16 +1,17 @@
+import '@ant-design/v5-patch-for-react-19';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, Tag, Spin, Typography, Alert } from 'antd';
-import { CONFIG } from '../constants/config'
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, Tag, Spin, Typography, Alert, Flex, Button, Divider, Modal } from 'antd';
+import { CONFIG } from '../constants/config';
 
-const { Title } = Typography;
-const apiUrl = CONFIG.API_URL
+const { Title, Paragraph } = Typography;
+const apiUrl = CONFIG.API_URL;
 
-const icon = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Fpremium-vector%2Fvector-illustration-for-the-cover-of-the-koran-with-arabic-calligraphy_700449-80.jpg%3Fw%3D2000&f=1&nofb=1&ipt=692a83ba91427161456ef53f22bd838527bb8339300cea444a2e81ab56f05929'
+const fallbackCover = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Fpremium-vector%2Fvector-illustration-for-the-cover-of-the-koran-with-arabic-calligraphy_700449-80.jpg%3Fw%3D2000&f=1&nofb=1&ipt=692a83ba91427161456ef53f22bd838527bb8339300cea444a2e81ab56f05929';
 
 const priorityColor = {
-  low: 'green',
-  high: 'red',
+  LOW: 'green',
+  HIGH: 'red',
 };
 
 const BookPage = () => {
@@ -18,6 +19,8 @@ const BookPage = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -45,30 +48,84 @@ const BookPage = () => {
     fetchBook();
   }, [id]);
 
-  if (loading) return <Spin tip="Загрузка книги..." />;
-  if (error) return <Alert type="error" message="Ошибка загрузки" description={error} />;
+  const confirmRequest = () => {
+    Modal.confirm({
+      title: 'Подтвердите запрос',
+      content: 'Вы уверены, что хотите создать запрос на выдачу этой книги?',
+      okText: 'Да',
+      cancelText: 'Отмена',
+      onOk: () => createRequest(),
+    });
+  };
+
+  const createRequest = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/users/me/requests?book_id=${id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      if (response.status == 409) { throw new Error('Вы не можете создать больше 5 запросов') }
+      if (response.status == 406) { throw new Error('Вы уже сделали запрос на эту книгу') }
+      if (!response.ok) throw new Error('Не удалось создать запрос');
+      Modal.success({
+        title: 'Запрос создан',
+        content: '📬 Ваш запрос на выдачу книги успешно отправлен!',
+        onOk: () => navigate('/books'),
+      });
+    } catch (err) {
+      Modal.error({
+        title: 'Ошибка',
+        content: `❌ ${err.message}`,
+      });
+    }
+  };
+
+  if (loading) return <Spin tip="📖 Загрузка книги..." style={{ marginTop: 50 }} />;
+  if (error) return <Alert type="error" message="Ошибка загрузки" description={error} showIcon />;
 
   return (
     <Card
-      title={<Title level={2}>{book.title}</Title>}
+      title={<Title level={1}>📘 {book.title}</Title>}
       style={{
-        width: '600px',
+        maxWidth: 900,
         margin: '40px auto',
-        padding: '32px',
+        padding: '40px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-        borderRadius: '12px',
-        backgroundColor: '#fafafa',
-        fontSize: '24px',
-        textAlign: 'center' 
+        borderRadius: '16px',
+        backgroundColor: '#fefefe',
+        fontSize: '20px',
       }}
     >
-      <div style={{float: 'left', textAlign: 'left'}}>
-        <p><strong>Автор:</strong> {book.author}</p>
-        <p><strong>Год издания:</strong> {book.year_publication}</p>
-        <p><strong>Количество:</strong> {book.count}</p>
-        <p><strong>Приоритет:</strong> <Tag style={{fontSize: 24, padding: 10}} color={priorityColor[book.priority]}>{book.priority}</Tag></p>
-      </div>
-      <img src={icon} style={{float: 'right', width: 200}} />
+      <Flex gap={50} align="start" justify="space-between">
+        <div style={{ flex: 1 }}>
+          <Paragraph style={{ fontSize: 22 }}><strong>👨‍💼 Автор:</strong> {book.author}</Paragraph>
+          <Paragraph style={{ fontSize: 22 }}><strong>📅 Год издания:</strong> {book.year_publication}</Paragraph>
+          <Paragraph style={{ fontSize: 22 }}><strong>🏢 Издательство:</strong> {book.publisher}</Paragraph>
+          <Paragraph style={{ fontSize: 22 }}>
+            <strong>📌 Приоритет:</strong>{' '}
+            <Tag color={priorityColor[book.priority]} style={{ fontSize: 20, padding: '6px 14px' }}>
+              {book.priority === 'HIGH' ? 'Высокий' : 'Низкий'}
+            </Tag>
+          </Paragraph>
+          <Divider />
+          <Button type="primary" size="large" style={{ fontSize: 18 }} onClick={confirmRequest}>
+            📤 Создать запрос на выдачу
+          </Button>
+        </div>
+        <img
+          src={book.cover || fallbackCover}
+          alt={`Обложка книги ${book.title}`}
+          style={{
+            width: 280,
+            height: 340,
+            borderRadius: 10,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+          loading="lazy"
+        />
+      </Flex>
     </Card>
   );
 };

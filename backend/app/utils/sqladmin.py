@@ -1,11 +1,11 @@
-from sqladmin import ModelView, Admin
 from fastapi import FastAPI
+from sqladmin import ModelView, Admin
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
 from app.config import auth_config
-from app.models import BookORM, UserORM, RequestORM
 from app.config.database import db
+from app.models import BookORM, UserORM, RequestORM
 from app.models.types import Role
 from app.repositories import UserRepository, AbstractRepository
 from app.utils import OAuth2Utility
@@ -23,7 +23,7 @@ class AdminAuth(AuthenticationBackend):
         db_user = await self.user_repository.find(email=email)
         if not db_user:
             return False
-        if db_user.role == Role.admin:
+        if db_user.role != Role.ADMIN:
             return False
 
         try:
@@ -56,6 +56,7 @@ class BaseAdmin(ModelView):
     column_sortable_list = column_list
     column_searchable_list = column_list
 
+
 class UserAdmin(BaseAdmin, model=UserORM):
     column_list = [
         'id',
@@ -70,6 +71,7 @@ class UserAdmin(BaseAdmin, model=UserORM):
         'requests'
     ]
 
+
 class BookAdmin(BaseAdmin, model=BookORM):
     column_list = [
         'id',
@@ -80,6 +82,8 @@ class BookAdmin(BaseAdmin, model=BookORM):
         'year_publication'
     ]
 
+    column_details_exclude_list = ['requests']
+
 class RequestAdmin(BaseAdmin, model=RequestORM):
     column_list = [
         'id',
@@ -89,11 +93,7 @@ class RequestAdmin(BaseAdmin, model=RequestORM):
         'created_at',
         'updated_at',
     ]
-    # form_excluded_columns = [RequestORM.user, RequestORM.book]
-    # column_details_exclude_list = [
-    #     'user',
-    #     'book'
-    # ]
+
 
 def get_admin(app: FastAPI) -> Admin:
     backend_auth = AdminAuth(auth_config.JWT_SECRET)
@@ -103,6 +103,7 @@ def get_admin(app: FastAPI) -> Admin:
         engine=db.engine,
         session_maker=db.session_factory,
         authentication_backend=backend_auth,
+        favicon_url="/LibraryWeb.svg",
     )
 
     admin.add_view(UserAdmin)

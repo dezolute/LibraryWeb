@@ -4,9 +4,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     PROJECT_NAME: str
     PROJECT_VERSION: str
-    HOST: str
-    PORT: int
-    RELOAD: bool
     DEBUG: bool
     CORS_ALLOWED_ORIGINS: str
 

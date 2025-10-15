@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class EmailConfig(BaseSettings):
     STMP_EMAIL_ADDRESS: str
     STMP_PASSWORD: str
@@ -11,5 +12,6 @@ class EmailConfig(BaseSettings):
         env_ignore_empty=True,
         extra='ignore'
     )
+
 
 email_config = EmailConfig()

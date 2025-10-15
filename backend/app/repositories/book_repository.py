@@ -12,11 +12,11 @@ class BookRepository(SqlAlchemyRepository):
     model = BookORM
 
     async def find_books(
-        self,
-        book_filter: BookFilter,
-        limit: int = 100,
-        offset: int = 0,
-        order_by: str = None,
+            self,
+            filters: BookFilter,
+            limit: int = 100,
+            offset: int = 0,
+            order_by: str = None,
     ) -> (List[ModelType], int):
         async with db.get_session() as session:
             query = (
@@ -25,13 +25,12 @@ class BookRepository(SqlAlchemyRepository):
                 .offset(offset)
                 .order_by(order_by)
             )
-            if book_filter.author:
-                query = query.where(BookORM.author.ilike(f"%{book_filter.author}%"))
-            if book_filter.publisher:
-                query = query.where(BookORM.publisher.ilike(f"%{book_filter.publisher}%"))
-            if book_filter.year_publication:
-                query = query.where(BookORM.year_publication == book_filter.year_publication)
-
+            if filters.author:
+                query = query.where(BookORM.author.ilike(f"%{filters.author}%"))
+            if filters.publisher:
+                query = query.where(BookORM.publisher.ilike(f"%{filters.publisher}%"))
+            if filters.year_publication:
+                query = query.where(BookORM.year_publication == filters.year_publication)
 
             result = await session.execute(query)
             total = await session.scalar(

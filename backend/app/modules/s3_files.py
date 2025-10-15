@@ -1,16 +1,19 @@
-import boto3
 import uuid
+
+import boto3
 
 from app.config import s3_config
 
+
 def get_s3_client():
     client = boto3.client('s3',
-        endpoint_url=s3_config.S3_ENDPOINT,
-        aws_access_key_id=s3_config.MINIO_ROOT_USER,
-        aws_secret_access_key=s3_config.MINIO_ROOT_PASSWORD,
-    )
+                          endpoint_url=s3_config.S3_ENDPOINT,
+                          aws_access_key_id=s3_config.MINIO_ROOT_USER,
+                          aws_secret_access_key=s3_config.MINIO_ROOT_PASSWORD,
+                          )
 
     return client
+
 
 def s3_create_bucket(bucket_name):
     s3_client = get_s3_client()

@@ -1,3 +1,4 @@
+import asyncio
 import os.path
 from typing import Callable, List
 
@@ -14,6 +15,11 @@ from app.schemas.utils.filters import BookFilter
 API_URL = "http://localhost/api"
 
 
+async def notify(book_id: int):
+    async with aiohttp.ClientSession() as session:
+        await session.post(f"{API_URL}/requests/notify", data=book_id)
+
+
 class BookService:
     def __init__(self, book_repository: Callable[[], AbstractRepository]):
         self.book_repository: AbstractRepository = book_repository()
@@ -28,7 +34,7 @@ class BookService:
         return BookDTO.model_validate(book)
 
     async def get_multi(
-        self, limit: int, offset: int, order_by: str, **filters
+            self, limit: int, offset: int, order_by: str, **filters
     ) -> MultiBookDTO:
         books, total = await self.book_repository.find_all(
             limit=limit, offset=offset, order_by=order_by, **filters
@@ -61,8 +67,7 @@ class BookService:
         updated_book = await self.book_repository.update(book_dict, id=book_id)
         updated_book = BookDTO.model_validate(updated_book)
         if db_book.count == 0 and book.count != 0:
-            async with aiohttp.ClientSession() as session:
-                await session.post(f"{API_URL}/requests/notify", data=book_id)
+            asyncio.create_task(notify(book_id))
 
         return updated_book
 
@@ -77,7 +82,9 @@ class BookService:
         return BookDTO.model_validate(book)
 
     async def set_cover_to_book(self, book_id: int, file: UploadFile) -> BookDTO:
-        path_to_file = f'{os.path.abspath('.')}\\temp\\new_cover.{file.filename.split('.')[-1]}'
+        ext = os.path.splitext(file.filename)[-1]
+        path_to_file = os.path.join(os.path.abspath("."), "temp", f"new_cover{ext}")
+
         with open(path_to_file, 'wb') as f:
             f.write(await file.read())
 
@@ -86,13 +93,13 @@ class BookService:
         with open(path_to_file, 'wb') as f:
             f.write(bytes(0))
 
-        book = await self.book_repository.update({ "cover": url }, id=book_id)
+        book = await self.book_repository.update({"cover": url}, id=book_id)
 
         book_db = BookDTO.model_validate(book)
         return book_db
 
     async def get_filtered_books(self, pg: Pagination, filters: BookFilter) -> MultiBookDTO:
-        books, total = self.book_repository.find_books(
+        books, total = await self.book_repository.find_books(
             limit=pg.limit,
             offset=pg.offset,
             order_by=pg.order_by,

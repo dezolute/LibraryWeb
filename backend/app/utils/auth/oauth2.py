@@ -1,4 +1,3 @@
-import uuid
 from datetime import timedelta, datetime, timezone
 from enum import Enum
 from typing import Annotated, Optional
@@ -12,12 +11,7 @@ from starlette import status
 from app.config import auth_config
 from app.repositories import UserRepository
 from app.schemas import UserRelationDTO
-from app.schemas.utils import PairTokens
-
-
-class TokenType(Enum):
-    ACCESS_TOKEN = "access-token"
-    REFRESH_TOKEN = "refresh-token"
+from app.schemas.utils import Token
 
 
 class OAuth2Utility:
@@ -32,12 +26,8 @@ class OAuth2Utility:
     def get_hashed_password(cls, plain_password: str) -> str:
         return cls.pwd_context.hash(plain_password)
 
-
-
-
-
     @staticmethod
-    def create_token(data: dict, token_type: TokenType, expires_delta: Optional[timedelta] = None) -> str:
+    def create_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
         to_encode = data.copy()
 
         expire = (
@@ -46,7 +36,6 @@ class OAuth2Utility:
 
         to_encode.update({
             "exp": expire,
-            "type": token_type.value,
         })
         encoded_jwt = jwt.encode(
             to_encode, auth_config.JWT_SECRET, algorithm=auth_config.JWT_ALGORITHM
@@ -54,23 +43,13 @@ class OAuth2Utility:
         return encoded_jwt
 
     @staticmethod
-    def get_tokens(data: dict) -> PairTokens:
-        token_id = str(uuid.uuid4())
-        data.update({
-            "jti": token_id,
-        })
-        return PairTokens(
-            refresh_token=OAuth2Utility.create_token(
-                data=data,
-                token_type=TokenType.REFRESH_TOKEN,
-                expires_delta=timedelta(days=7)
-            ),
+    def get_tokens(data: dict) -> Token:
+        return Token(
             access_token=OAuth2Utility.create_token(
                 data=data,
-                token_type=TokenType.ACCESS_TOKEN,
-                expires_delta=timedelta(minutes=15)
+                expires_delta=timedelta(minutes=30)
             ),
-            token_id=token_id
+            token_type='Bearer'    
         )
 
     @staticmethod
@@ -83,9 +62,9 @@ class OAuth2Utility:
             return payload
         except jwt.InvalidTokenError:
             raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bad token",
-        )
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Bad token",
+            )
 
     @staticmethod
     async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
@@ -100,10 +79,11 @@ class OAuth2Utility:
             )
 
             db_user = await UserRepository().find(email=payload.get("sub"), verified=True)
+            if db_user is None:
+                raise credentials_exception
+
             user = UserRelationDTO.model_validate(db_user)
 
-            if user is None:
-                raise credentials_exception
         except jwt.InvalidTokenError:
             raise credentials_exception
 
