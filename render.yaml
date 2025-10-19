@@ -60,7 +60,7 @@ services:
       - name: minio-data
         mountPath: /data
 
-  - type: private
+  - type: corn
     name: mc
     env: docker
     image: minio/mc
