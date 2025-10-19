@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
+import requests
 
 from app.config import settings
 from app.router import get_apps_routes
@@ -27,7 +28,6 @@ def get_app() -> FastAPI:
     )
 
     return application
-
 
 app = get_app()
 admin = get_admin(app)
