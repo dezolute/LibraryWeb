@@ -102,4 +102,7 @@ def downgrade() -> None:
     op.drop_table("requests")
     op.drop_table("users")
     op.drop_table("books")
+    op.execute(sa.text(""))
+    op.execute(sa.text(""))
+    op.execute(sa.text(""))
     # ### end Alembic commands ###
