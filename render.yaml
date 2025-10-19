@@ -23,7 +23,7 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     autoDeploy: true
 
-  - type: private
+  - type: web
     name: db
     env: docker
     image: postgres:alpine
@@ -38,7 +38,7 @@ services:
       - name: postgres-data
         mountPath: /var/lib/postgresql/data
 
-  - type: private
+  - type: web
     name: redis
     env: docker
     image: redis:alpine
@@ -46,7 +46,7 @@ services:
       - name: redis-data
         mountPath: /data
 
-  - type: private
+  - type: web
     name: minio
     env: docker
     image: minio/minio:latest
@@ -60,7 +60,7 @@ services:
       - name: minio-data
         mountPath: /data
 
-  - type: corn
+  - type: web
     name: mc
     env: docker
     image: minio/mc
