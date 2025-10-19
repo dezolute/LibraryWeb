@@ -33,11 +33,11 @@ async def get_current_user(
 
 @user_router.patch("/me/icon")
 async def set_user_avatar(
-        file: UploadFile,
+        icon: UploadFile,
         current_user: Annotated[UserRelationDTO, Depends(OAuth2Utility.get_current_user)],
-        user_service: Annotated[UserService, Depends(Deps.auth_service)],
+        user_service: Annotated[UserService, Depends(Deps.user_service)],
 ):
-    updated_user = await user_service.set_icon_to_user(current_user.id, file)
+    updated_user = await user_service.set_icon_to_user(current_user.id, icon)
     return updated_user
 
 

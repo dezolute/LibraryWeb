@@ -16,7 +16,7 @@ class RedisConnection:
         self.redis = Redis(
             host=self.host,
             port=self.port,
-            db=self.db,
+            db=0,
             decode_responses=True
         )
         return self.redis
@@ -36,7 +36,6 @@ class RedisDB:
         async with RedisConnection(
                 host=self.host,
                 port=self.port,
-                db=0
         ) as conn:
             try:
                 await conn.ping()

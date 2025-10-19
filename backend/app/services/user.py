@@ -4,6 +4,7 @@ import secrets
 from typing import Callable
 
 from fastapi import UploadFile, HTTPException
+from starlette import status
 
 from app.models.types import Role
 from app.modules import RedisRepository
@@ -61,7 +62,13 @@ class UserService:
         user_dict = clear_user.model_dump()
         user_dict.update({"encrypted_password": encrypted_password})
 
-        db_user = await self.user_repository.create(user_dict)
+        try:
+            db_user = await self.user_repository.create(user_dict)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="User with this email alredy exist"
+            )
 
         token = secrets.token_urlsafe(15)
         asyncio.create_task(send_verify_email(

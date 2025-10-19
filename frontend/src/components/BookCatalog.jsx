@@ -12,7 +12,7 @@ const priorityColor = {
   LOW: 'green',
 };
 
-const fallbackCover = 'src/assets/BookPlug.jpg';
+const fallbackCover = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcovers.bookcoverzone.com%2Fimage%2Fpng24-front%2Fbookcover0027056.jpg%26height%3D1000&f=1&nofb=1&ipt=39b398c37a54c686bc438f711ad93f29840f7798ee8ea1bdbf57152b8046e533';
 
 const BookCatalog = () => {
   const [books, setBooks] = useState([]);

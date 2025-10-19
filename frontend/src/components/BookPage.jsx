@@ -7,7 +7,7 @@ import { CONFIG } from '../constants/config';
 const { Title, Paragraph } = Typography;
 const apiUrl = CONFIG.API_URL;
 
-const fallbackCover = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Fpremium-vector%2Fvector-illustration-for-the-cover-of-the-koran-with-arabic-calligraphy_700449-80.jpg%3Fw%3D2000&f=1&nofb=1&ipt=692a83ba91427161456ef53f22bd838527bb8339300cea444a2e81ab56f05929';
+const fallbackCover = 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcovers.bookcoverzone.com%2Fimage%2Fpng24-front%2Fbookcover0027056.jpg%26height%3D1000&f=1&nofb=1&ipt=39b398c37a54c686bc438f711ad93f29840f7798ee8ea1bdbf57152b8046e533';
 
 const priorityColor = {
   LOW: 'green',
