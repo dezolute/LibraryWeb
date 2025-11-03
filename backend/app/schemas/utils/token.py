@@ -15,4 +15,4 @@ class PairTokens(BaseModel):
 
 
 class TokenData(BaseModel):
-    user_id: int | None = None
+    reader_id: int | None = None

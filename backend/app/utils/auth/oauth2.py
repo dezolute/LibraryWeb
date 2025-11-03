@@ -1,5 +1,4 @@
 from datetime import timedelta, datetime, timezone
-from enum import Enum
 from typing import Annotated, Optional
 
 import jwt
@@ -8,10 +7,15 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from starlette import status
 
+import app.repositories
 from app.config import auth_config
-from app.repositories import UserRepository
-from app.schemas import UserRelationDTO
+from app.repositories import RepositoryFactory
+from app.schemas.relations import ReaderRelationDTO
 from app.schemas.utils import Token
+
+
+def get_repo():
+    return app.repositories.RepositoryFactory
 
 
 class OAuth2Utility:
@@ -49,7 +53,7 @@ class OAuth2Utility:
                 data=data,
                 expires_delta=timedelta(minutes=30)
             ),
-            token_type='Bearer'    
+            token_type='Bearer'
         )
 
     @staticmethod
@@ -67,7 +71,7 @@ class OAuth2Utility:
             )
 
     @staticmethod
-    async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    async def get_current_reader(token: Annotated[str, Depends(oauth2_scheme)]):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
@@ -78,13 +82,13 @@ class OAuth2Utility:
                 token, auth_config.JWT_SECRET, algorithms=[auth_config.JWT_ALGORITHM]
             )
 
-            db_user = await UserRepository().find(email=payload.get("sub"), verified=True)
-            if db_user is None:
+            db_reader = await RepositoryFactory.reader_repository().find(email=payload.get("sub"), verified=True)
+            if db_reader is None:
                 raise credentials_exception
 
-            user = UserRelationDTO.model_validate(db_user)
+            reader = ReaderRelationDTO.model_validate(db_reader)
 
         except jwt.InvalidTokenError:
             raise credentials_exception
 
-        return user
+        return reader

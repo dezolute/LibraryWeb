@@ -1,12 +1,14 @@
+from urllib.request import Request
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
-import requests
 
 from app.config import settings
 from app.router import get_apps_routes
-from app.utils.sqladmin import get_admin
+from app.utils.admin.sqladmin import get_admin
+from app.utils.cache import lifespan
 
 
 def get_app() -> FastAPI:
@@ -15,6 +17,7 @@ def get_app() -> FastAPI:
         version=settings.PROJECT_VERSION,
         debug=settings.DEBUG,
         root_path="/api",
+        lifespan=lifespan,
     )
 
     application.include_router(get_apps_routes())
@@ -29,12 +32,15 @@ def get_app() -> FastAPI:
 
     return application
 
+
 app = get_app()
 admin = get_admin(app)
+
 
 @app.get("/")
 async def root():
     return RedirectResponse(url="/api/docs")
+
 
 if __name__ == "__main__":
     uvicorn.run(

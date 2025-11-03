@@ -2,19 +2,23 @@ from enum import Enum
 
 
 class Role(str, Enum):
-    USER = "USER"
+    READER = "READER"
     ADMIN = "ADMIN"
     EMPLOYEE = "EMPLOYEE"
 
 
-class Priority(str, Enum):
-    LOW = "LOW"
-    HIGH = "HIGH"
+class BookCopyStatus(str, Enum):
+    AVAILABLE = "AVAILABLE"
+    BORROWED = "BORROWED"
+    RESERVED = "RESERVED"
 
 
-class Status(str, Enum):
-    ACCEPTED = "ACCEPTED"
-    IN_QUEUED = "IN_QUEUED"
-    AWAITING = "AWAITING"
-    GIVEN = "GIVEN"
-    RETURNED = "RETURNED"
+class BookAccessType(str, Enum):
+    READING_ROOM = "READING_ROOM"
+    TAKE_HOME = "TAKE_HOME"
+
+
+class RequestStatus(str, Enum):
+    PENDING = "PENDING"
+    FULFILLED = "FULFILLED"
+    QUEUED = "QUEUED"

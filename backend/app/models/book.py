@@ -1,9 +1,8 @@
 from typing import Optional
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from .types import Priority
 
 
 class BookORM(Base):
@@ -13,7 +12,16 @@ class BookORM(Base):
     title: Mapped[str]
     author: Mapped[str]
     publisher: Mapped[str]
-    priority: Mapped[Priority]
-    cover: Mapped[Optional[str]]
-    count: Mapped[int]
+    cover_url: Mapped[Optional[str]]
     year_publication: Mapped[int]
+
+    copies: Mapped[list["BookCopyORM"]] = relationship(
+        "BookCopyORM",
+        back_populates="book",
+        cascade="all, delete, delete-orphan",
+    )
+
+    requests: Mapped[Optional["RequestORM"]] = relationship(
+        "RequestORM",
+        back_populates="book"
+    )

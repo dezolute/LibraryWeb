@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Card, Tag, Spin, Typography, Alert, Flex, Button, Divider, Modal } from 'antd';
 import { CONFIG } from '../constants/config';
 
+
 const { Title, Paragraph } = Typography;
 const apiUrl = CONFIG.API_URL;
 
@@ -60,7 +61,7 @@ const BookPage = () => {
 
   const createRequest = async () => {
     try {
-      const response = await fetch(`${apiUrl}/users/me/requests?book_id=${id}`, {
+      const response = await fetch(`${apiUrl}/readers/me/requests?book_id=${id}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
