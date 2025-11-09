@@ -20,7 +20,7 @@ class AuthService:
         )
 
         reader = await self.reader_repository.find(email=form_data.username)
-        if reader is None:
+        if reader is None or reader.profile is None:
             raise error
 
         is_compair = OAuth2Utility.verify_password(

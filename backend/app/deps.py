@@ -1,7 +1,3 @@
-from typing import Annotated
-
-from fastapi import Depends
-
 from app.repositories import RepositoryFactory as RF
 from app.services import AuthService, BookService, ReaderService
 from app.services.loan import LoanService
@@ -30,8 +26,10 @@ class Deps:
     @staticmethod
     def request_service() -> RequestService:
         return RequestService(
-            RF.reader_repository(),
-            reader_service=Deps.reader_service()
+            RF.request_repository(),
+            reader_service=Deps.reader_service(),
+            book_service=Deps.book_service(),
+            loan_service=Deps.loan_service()
         )
 
     @staticmethod
@@ -39,5 +37,5 @@ class Deps:
         return LoanService(
             RF.loan_repository(),
             book_service=Deps.book_service(),
-            reader_service=Deps.reader_service()
+            reader_service=Deps.reader_service(),
         )

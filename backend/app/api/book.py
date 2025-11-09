@@ -30,7 +30,7 @@ async def create_book(
         book: BookCreateDTO,
         current_reader: CurrentReaderType,
         book_service: BookServiceType,
-) -> BookDTO:
+) -> BookRelationDTO:
     if current_reader.role == Role.READER:
         raise Forbidden
 
@@ -43,7 +43,7 @@ async def create_multi(
         books: List[BookCreateDTO],
         current_reader: CurrentReaderType,
         book_service: BookServiceType,
-) -> List[BookDTO]:
+) -> List[BookRelationDTO]:
     if current_reader.role == Role.READER:
         raise Forbidden
 

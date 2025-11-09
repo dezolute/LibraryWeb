@@ -11,7 +11,7 @@ class BookCopyORM(Base):
     serial_num: Mapped[str] = mapped_column(primary_key=True)
     book_id: Mapped[int] = mapped_column(ForeignKey("books.id", ondelete="CASCADE"))
     status: Mapped[BookCopyStatus] = mapped_column(default=BookCopyStatus.AVAILABLE)
-    access_type: Mapped[str] = mapped_column(default=BookAccessType.TAKE_HOME)
+    access_type: Mapped[BookAccessType] = mapped_column(default=BookAccessType.TAKE_HOME)
 
     book: Mapped["BookORM"] = relationship(
         "BookORM",

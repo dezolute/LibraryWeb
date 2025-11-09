@@ -1,8 +1,10 @@
-from typing import List
+from typing import List, Set, Type, TypeVar
 
-from sqlalchemy.orm import DeclarativeBase, selectinload, joinedload
+from sqlalchemy import inspect
+from sqlalchemy.orm import DeclarativeBase, selectinload
 from sqlalchemy.orm.interfaces import LoaderOption
 
+ModelType = TypeVar('ModelType')
 
 class Base(DeclarativeBase):
     __abstract__ = True
@@ -19,13 +21,25 @@ class Base(DeclarativeBase):
         return f"<{self.__class__.__name__} {", ".join(cols)}>"
 
     @classmethod
-    def get_loads(cls) -> List[LoaderOption]:
-        loads: List[LoaderOption] = []
-        for rel in cls.__mapper__.relationships:
+    def get_loads(cls: Type[ModelType], visited: Set[Type] = None) -> List[LoaderOption]:
+        if visited is None:
+            visited = set()
+
+        if cls in visited:
+            return []
+
+        visited.add(cls)
+
+        loads = []
+        mapper = inspect(cls)
+
+        for rel in mapper.relationships:
             attr = getattr(cls, rel.key)
-            if rel.uselist:
-                loads.append(selectinload(attr))
+
+            nested_loads = rel.mapper.class_.get_loads(visited)
+            if nested_loads:
+                loads.append(selectinload(attr).options(*nested_loads))
             else:
-                loads.append(joinedload(attr))
+                loads.append(selectinload(attr))
 
         return loads

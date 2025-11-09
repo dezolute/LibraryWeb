@@ -32,12 +32,14 @@ class BookService:
         self.book_copy_repository: RepositoryType = book_copy_repository
 
 
-    async def get_single(self, **filters) -> BookRelationDTO:
+    async def get_single(self, get_orm: bool = False, **filters) -> BookRelationDTO:
         book = await self.book_repository.find(**filters)
         if book is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
             )
+        if get_orm:
+            return book
 
         return BookRelationDTO.model_validate(book)
 
@@ -58,12 +60,11 @@ class BookService:
 
         copy_list = book_dict.pop("copies")
         db_book = await self.book_repository.create(book_dict)
-        copies = await self.book_copy_repository.create_multiple(
+        await self.book_copy_repository.create_multiple(
             [row | {"book_id": db_book.id} for row in copy_list]
         )
-        db_book.copies = copies
 
-        return BookRelationDTO.model_validate(db_book)
+        return await self.get_single(id=db_book.id)
 
     async def add_multi(self, books: List[BookCreateDTO]) -> List[BookDTO]:
         books_dict = [row.model_dump() for row in books]
@@ -72,7 +73,7 @@ class BookService:
         list_books_dto = [BookDTO.model_validate(row) for row in db_books]
         return list_books_dto
 
-    async def update_book(self, book_id: int, host: str, book: BookCreateDTO) -> BookDTO:
+    async def update_book(self, book_id: int, book: BookCreateDTO) -> BookDTO:
         db_book = await self.book_repository.find(id=book_id)
         if db_book is None:
             raise HTTPException(
@@ -147,10 +148,10 @@ class BookService:
         return MultiDTO(items=db_copies, total=len(copies))
 
     async def change_copy_status(self, new_status: BookCopyStatus, serial_num: str) -> BookCopyFullDTO:
+        print(f"\n\n{serial_num=}\n\n")
         book_copy = await self.book_copy_repository.update(
             data={ "status": new_status },
             serial_num=serial_num,
-            status=BookCopyStatus.RESERVED,
         )
 
         if book_copy is None:

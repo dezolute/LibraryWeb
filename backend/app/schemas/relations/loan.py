@@ -1,8 +1,6 @@
-from app.schemas import ReaderDTO
-from app.schemas.loan import LoanDTO
-from app.schemas.relations.book_copy import BookCopyRelationDTO
+from app.schemas.relations.reader import ReaderRelationDTO
+from app.schemas.relations.semi_loan import LoanSemiRelationDTO
 
 
-class LoanRelationDTO(LoanDTO):
-    user: ReaderDTO
-    book_copy: BookCopyRelationDTO
+class LoanRelationDTO(LoanSemiRelationDTO):
+    reader: ReaderRelationDTO

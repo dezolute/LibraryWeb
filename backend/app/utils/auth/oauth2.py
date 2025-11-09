@@ -51,7 +51,7 @@ class OAuth2Utility:
         return Token(
             access_token=OAuth2Utility.create_token(
                 data=data,
-                expires_delta=timedelta(minutes=30)
+                expires_delta=timedelta(days=1)
             ),
             token_type='Bearer'
         )

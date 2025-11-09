@@ -7,10 +7,12 @@ from app.models.types import RequestStatus, BookCopyStatus
 from app.modules.email import send_notification_email
 from app.repositories.factory import RepositoryType
 from app.schemas import RequestDTO, MultiDTO
-from app.schemas.relations import RequestRelationDTO, ReaderRelationDTO
+from app.schemas.relations import RequestRelationDTO, ReaderRelationDTO, RequestSemiRelationDTO
 from app.schemas.utils import Pagination
 from app.services.reader import ReaderService
 from app.services.book import BookService
+from app.schemas.loan import LoanCreateDTO
+from app.services.loan import LoanService
 
 
 class RequestService:
@@ -18,11 +20,13 @@ class RequestService:
             self,
             request_repository: RepositoryType,
             reader_service: ReaderService,
-            book_service: BookService
+            book_service: BookService,
+            loan_service: LoanService,
     ):
         self.request_repository: RepositoryType = request_repository
         self.book_service: BookService = book_service
         self.reader_service: ReaderService = reader_service
+        self.loan_service: LoanService = loan_service
 
     async def create_request(self, reader_id: int, book_id: int) -> RequestDTO:
         data: dict[str, int] = {
@@ -46,7 +50,8 @@ class RequestService:
                 detail="You cannot request more than 5 requests",
             )
 
-        book = await self.book_service.get_single(book_id=book_id)
+        book = await self.book_service.get_single(get_orm=True, id=book_id)
+        new_status = {}
         for el in book.copies:
             if el.status == BookCopyStatus.AVAILABLE:
                 await self.book_service.change_copy_status(
@@ -58,11 +63,13 @@ class RequestService:
             new_status = { "status": RequestStatus.QUEUED }
 
         db_request = await self.request_repository.create(data | new_status)
-        return RequestRelationDTO.model_validate(db_request)
+        db_request.book = book
+
+        return RequestSemiRelationDTO.model_validate(db_request)
 
     async def update_status(self, request_id: int, new_status: RequestStatus) -> RequestDTO:
         request = await self.request_repository.update(
-            data={ "status": new_status},
+            data={ "status": new_status },
             id=request_id
         )
 
@@ -74,16 +81,22 @@ class RequestService:
 
         return RequestDTO.model_validate(request)
 
-    async def get_multi(self, pg: Pagination, conditions = [], **filters) -> MultiDTO[RequestRelationDTO]:
+    async def get_multi(
+        self, pg: Pagination,
+        conditions = None,
+        **filters
+    ) -> MultiDTO[RequestRelationDTO]:
         requests, total = await self.request_repository.find_all(
             pg=pg,
             conditions=conditions,
             **filters
         )
 
-        items = [RequestRelationDTO.model_validate(row) for row in requests]
-
-        return MultiDTO(items=items, total=total)
+        requests_db = MultiDTO(
+            items=[RequestRelationDTO.model_validate(row) for row in requests],
+            total=total
+        )
+        return requests_db
 
     async def get_single(self, request_id: int) -> RequestRelationDTO:
         request = await self.request_repository.find(id=request_id)
@@ -135,3 +148,18 @@ class RequestService:
         ))
 
         return RequestDTO.model_validate(request)
+
+    async def give_book(self, request_id: int):
+        request = await self.update_status(
+            request_id=request_id,
+            new_status=RequestStatus.FULFILLED.value
+        )
+
+        loan = await self.loan_service.create_loan(
+            loan=LoanCreateDTO(
+                reader_id=request.reader_id,
+                book_id=request.book_id
+            )
+        )
+
+        return loan

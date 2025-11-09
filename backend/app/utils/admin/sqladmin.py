@@ -72,6 +72,7 @@ class ReaderAdmin(BaseAdmin, model=ReaderORM):
 
 
 class BookAdmin(BaseAdmin, model=BookORM):
+    
     column_list = [
         'id',
         'title',

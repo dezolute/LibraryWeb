@@ -21,7 +21,7 @@ class BookORM(Base):
         cascade="all, delete, delete-orphan",
     )
 
-    requests: Mapped[Optional["RequestORM"]] = relationship(
+    requests: Mapped[Optional[list["RequestORM"]]] = relationship(
         "RequestORM",
         back_populates="book"
     )

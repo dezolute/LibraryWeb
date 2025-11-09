@@ -8,7 +8,7 @@ from app.schemas.utils import Pagination
 from app.services import RequestService, ReaderService, BookService, LoanService
 from app.utils import OAuth2Utility
 
-PaginationType = Annotated[Pagination, Query()]
+PaginationType = Annotated[Pagination, Depends()]
 CurrentReaderType = Annotated[ReaderRelationDTO, Depends(OAuth2Utility.get_current_reader)]
 
 RequestServiceType = Annotated[RequestService, Depends(Deps.request_service)]

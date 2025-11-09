@@ -22,3 +22,4 @@ class RequestStatus(str, Enum):
     PENDING = "PENDING"
     FULFILLED = "FULFILLED"
     QUEUED = "QUEUED"
+    REJECTED = "REJECTED"

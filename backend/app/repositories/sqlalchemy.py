@@ -1,4 +1,4 @@
-from typing import List, Generic, Type, Tuple, TypeVar
+from typing import List, Type, Tuple, TypeVar
 
 from sqlalchemy import update, delete, select, func, ClauseElement
 
@@ -11,7 +11,7 @@ from app.schemas.utils import Pagination
 ModelType = TypeVar('ModelType', bound=Base)
 
 
-class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
+class SqlAlchemyRepository[ModelType](AbstractRepository):
     def __init__(self, model: Type[ModelType]):
         self.model: Type[ModelType] = model
 
@@ -20,19 +20,9 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
             model = self.model(**data)
             session.add(model)
             await session.commit()
+            await session.refresh(model)
 
-            pk = self.model.__mapper__.primary_key[0]
-            new_id = getattr(model, pk.key)
-
-            query = (
-                select(self.model)
-                .where(pk == new_id)
-                .options(*self.model.get_loads())
-            )
-
-            result = await session.execute(query)
-
-            return result.scalars().first()
+            return model
 
     async def create_multiple(self, data: List[dict]) -> List[ModelType]:
         async with db.get_session() as session:
@@ -77,9 +67,9 @@ class SqlAlchemyRepository(AbstractRepository, Generic[ModelType]):
             return result.scalar_one_or_none()
 
     async def delete(self,
-                     conditions: List[ClauseElement] = None,
-                     **filters
-                     ) -> ModelType:
+        conditions: List[ClauseElement] = None,
+        **filters
+    ) -> ModelType:
         async with db.get_session() as session:
             stmt = (
                 delete(self.model)

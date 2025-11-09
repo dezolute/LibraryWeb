@@ -1,11 +1,17 @@
-from datetime import  date
+import os
+from datetime import datetime
+from typing import List
 
-from app.services.request import RequestService
+from docx import Document
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
+from starlette import status
+
 from app.services.book import BookService
 from app.services.reader import ReaderService
 from app.repositories import RepositoryType
-from app.models import RequestORM, LoanORM
-from app.models.types import BookCopyStatus, RequestStatus
+from app.models import LoanORM
+from app.models.types import BookCopyStatus
 from app.schemas import MultiDTO
 from app.schemas.loan import LoanCreateDTO
 from app.schemas.relations import LoanRelationDTO
@@ -18,45 +24,57 @@ class LoanService:
             loan_repository: RepositoryType,
             book_service: BookService,
             reader_service: ReaderService,
-            request_service: RequestService,
     ):
         self.loan_repository: RepositoryType = loan_repository
         self.book_service: BookService = book_service
         self.reader_service: ReaderService = reader_service
-        self.request_service: RequestService = request_service
 
-    async def get_loans(self, pg: Pagination) -> MultiDTO[LoanRelationDTO]:
-        loans, total = await self.loan_repository.find_all(pg=pg)
+    async def get_loans(
+        self,
+        pg: Pagination,
+        conditions = None,
+        **filters
+    ) -> MultiDTO[LoanRelationDTO]:
+        loans, total = await self.loan_repository.find_all(
+            pg=pg,
+            conditions=conditions,
+            **filters
+        )
 
-        return MultiDTO(
+        loans_db = MultiDTO(
             items=[LoanRelationDTO.model_validate(loan) for loan in loans],
             total=total,
         )
+        return loans_db
 
     async def create_loan(self, loan: LoanCreateDTO) -> LoanRelationDTO:
-        loan_data = loan.model_dump()
+        copy = None
+        book = await self.book_service.get_single(id=loan.book_id)
+        for copy in book.copies:
+            if copy.status == BookCopyStatus.AVAILABLE:
+                copy = await self.book_service.change_copy_status(
+                    new_status=BookCopyStatus.BORROWED,
+                    serial_num=copy.serial_num
+                )
+                break
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Avaliable copy not found"
+            )
 
-        db_loan = await self.loan_repository.create(loan_data)
-        copy = await self.book_service.change_copy_status(
-            new_status=BookCopyStatus.BORROWED,
-            serial_num=loan.serial_num
-        )
-
-        requests = await self.request_service.get_multi(
-            pg=Pagination(),
-            conditions=[
-                RequestORM.status != RequestStatus.FULFILLED,
-            ],
-            book_id=copy.book_id
-        )
-        await self.request_service.update_status(request_id=requests[0].id, new_status=RequestStatus.FULFILLED)
+        db_loan = await self.loan_repository.create({ 
+            "reader_id": loan.reader_id,
+            "copy_id": copy.serial_num
+        })
+        db_loan.copy = copy
 
         db_loan.copy = copy
 
         return LoanRelationDTO.model_validate(db_loan)
 
     async def set_loan_as_returned(self, loan_id) -> LoanRelationDTO:
-        await self.loan_repository.update(data={ "return_date": date.today() }, id=loan_id)
+        await self.loan_repository.update(data={ "return_date": datetime.now() }, id=loan_id)
         loan = await self.loan_repository.find(id=loan_id)
 
         copy = await self.book_service.change_copy_status(
@@ -71,7 +89,7 @@ class LoanService:
         loans, total = await self.loan_repository.find_all(
             pg=pg,
             conditions=[
-                LoanORM.due_date >= date.today(),
+                LoanORM.due_date < datetime.now(),
             ]
         )
 
@@ -80,5 +98,44 @@ class LoanService:
                 LoanRelationDTO.model_validate(loan)
                 for loan in loans
             ],
-        total=total,
+            total=total,
+        )
+
+    @staticmethod
+    def create_report(loans: List[LoanRelationDTO], save_path: str) -> None:
+        doc = Document()
+        doc.add_heading("Отчёт по задолженности читателей", level=1)
+        doc.add_paragraph(f"Дата создания: {datetime.today().strftime('%d.%m.%Y')}")
+
+        table = doc.add_table(rows=1, cols=6)
+        table.style = "Table Grid"
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = "ФИО"
+        hdr_cells[1].text = "Книга"
+        hdr_cells[2].text = "Серийный номер"
+        hdr_cells[3].text = "Дата выдачи"
+        hdr_cells[4].text = "Срок возврата"
+        hdr_cells[5].text = "Просрочка (дн.)"
+
+        for loan in loans:
+            row_cells = table.add_row().cells
+            row_cells[0].text = loan.reader.profile.full_name
+            row_cells[1].text = loan.book_copy.book.title
+            row_cells[2].text = loan.copy_id
+            row_cells[3].text = loan.issue_date.strftime("%d.%m.%Y")
+            row_cells[4].text = loan.due_date.strftime("%d.%m.%Y")
+            row_cells[5].text = str((datetime.now() - loan.due_date).days)
+
+        doc.save(save_path)
+
+    async def overdue_report(self, pg: Pagination) -> FileResponse:
+        loans = await self.get_overdue_loans(pg)
+
+        path_to_file = os.path.join(os.path.abspath("."), "temp", f"overdue_report.docx")
+        self.create_report(loans.items, path_to_file)
+
+        return FileResponse(
+            path=path_to_file,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            filename=f"{datetime.today().strftime('%d.%m.%Y')}_overdue.docx"
         )

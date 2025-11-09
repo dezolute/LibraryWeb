@@ -40,6 +40,7 @@ class ReaderService:
         try:
             full_name = reader_dict.pop("full_name")
             db_reader = await self.reader_repository.create(data=reader_dict)
+            print(f"\n\n{db_reader.id}\n\n")
             profile = await self.profile_repository.create(data={
                 "full_name": full_name,
                 "reader_id": db_reader.id
@@ -47,14 +48,15 @@ class ReaderService:
             db_reader.profile = profile
         except exc.IntegrityError as e:
             raise HTTPException(
-                status_code=status.HTTP_409_BAD_REQUEST,
+                status_code=status.HTTP_409_CONFLICT,
                 detail=str(e),
             )
 
         token = secrets.token_urlsafe(15)
         asyncio.create_task(send_verify_email(
             to=str(db_reader.email),
-            token=token
+            token=token,
+            host="127.0.0.1"
         ))
         asyncio.create_task(self.redis.set_verify_tokens(
             token_id=token,

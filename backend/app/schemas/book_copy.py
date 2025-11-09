@@ -9,3 +9,6 @@ class BookCopyDTO(BaseModel):
     serial_num: str
     status: BookCopyStatus
     access_type: BookAccessType
+
+class BookCopyFullDTO(BookCopyDTO):
+    book_id: int
