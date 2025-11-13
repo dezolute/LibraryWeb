@@ -2,27 +2,23 @@ from typing import List, Annotated, Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.models.types import Priority
+from app.models.types import BookAccessType
 
+class BookCopyCreateDTO(BaseModel):
+    serial_num: str
+    access_type: BookAccessType
 
-class BookCreateDTO(BaseModel):
+class BookClearDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     title: Annotated[str, Field(max_length=100)]
     author: Annotated[str, Field(max_length=100)]
     publisher: Annotated[str, Field(max_length=100)]
-    priority: Priority
-    count: Annotated[int, Field(default=0)]
     year_publication: Annotated[int, Field(ge=1900)]
 
+class BookCreateDTO(BookClearDTO):
+    copies: list[BookCopyCreateDTO]
 
-class BookDTO(BookCreateDTO):
-    model_config = ConfigDict(from_attributes=True)
-
+class BookDTO(BookClearDTO):
     id: int
-    cover: Optional[str]
-
-
-class MultiBookDTO(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    items: List[BookDTO]
-    total: int
+    cover_url: Optional[str]

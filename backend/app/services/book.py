@@ -1,53 +1,70 @@
 import asyncio
 import os.path
-from typing import Callable, List
+from typing import List, Any, Coroutine
 
 import aiohttp
 from fastapi import HTTPException, UploadFile
 from starlette import status
 
-from app.modules.s3_files import upload_file_to_s3
-from app.repositories.base_repository import AbstractRepository
-from app.schemas import BookDTO, BookCreateDTO, MultiBookDTO
+from app.models import BookCopyORM
+from app.models.types import BookCopyStatus
+from app.modules.s3 import upload_file_to_s3
+from app.schemas import BookDTO, BookCreateDTO, MultiDTO, BookCopyCreateDTO, BookCopyDTO
+from app.schemas.book_copy import BookCopyFullDTO
+from app.schemas.relations import BookRelationDTO
 from app.schemas.utils import Pagination
 from app.schemas.utils.filters import BookFilter
+from app.repositories import RepositoryType
 
-API_URL = "http://localhost/api"
 
-
-async def notify(book_id: int):
+async def notify(book_id: int, host: str):
     async with aiohttp.ClientSession() as session:
-        await session.post(f"{API_URL}/requests/notify", data=book_id)
+        await session.post(f"http://{host}/requests/notify", data=book_id)
 
 
 class BookService:
-    def __init__(self, book_repository: Callable[[], AbstractRepository]):
-        self.book_repository: AbstractRepository = book_repository()
+    def __init__(
+            self,
+            book_repository: RepositoryType,
+            book_copy_repository: RepositoryType
+    ):
+        self.book_repository: RepositoryType = book_repository
+        self.book_copy_repository: RepositoryType = book_copy_repository
 
-    async def get_single(self, **filters) -> BookDTO:
+
+    async def get_single(self, get_orm: bool = False, **filters) -> BookRelationDTO:
         book = await self.book_repository.find(**filters)
         if book is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
             )
+        if get_orm:
+            return book
 
-        return BookDTO.model_validate(book)
+        return BookRelationDTO.model_validate(book)
 
     async def get_multi(
-            self, limit: int, offset: int, order_by: str, **filters
-    ) -> MultiBookDTO:
+            self, pg: Pagination, book_filters: BookFilter = None, **filters
+    ) -> MultiDTO[BookRelationDTO]:
         books, total = await self.book_repository.find_all(
-            limit=limit, offset=offset, order_by=order_by, **filters
+            pg=pg,
+            conditions=book_filters.conditions,
+            **filters
         )
 
-        books_dto = MultiBookDTO(items=[BookDTO.model_validate(row) for row in books], total=total)
+        books_dto = MultiDTO(items=[BookRelationDTO.model_validate(row) for row in books], total=total)
         return books_dto
 
     async def add_book(self, book: BookCreateDTO) -> BookDTO:
         book_dict = book.model_dump()
-        book = await self.book_repository.create(book_dict)
 
-        return BookDTO.model_validate(book)
+        copy_list = book_dict.pop("copies")
+        db_book = await self.book_repository.create(book_dict)
+        await self.book_copy_repository.create_multiple(
+            [row | {"book_id": db_book.id} for row in copy_list]
+        )
+
+        return await self.get_single(id=db_book.id)
 
     async def add_multi(self, books: List[BookCreateDTO]) -> List[BookDTO]:
         books_dict = [row.model_dump() for row in books]
@@ -64,12 +81,10 @@ class BookService:
             )
 
         book_dict = book.model_dump()
-        updated_book = await self.book_repository.update(book_dict, id=book_id)
-        updated_book = BookDTO.model_validate(updated_book)
-        if db_book.count == 0 and book.count != 0:
-            asyncio.create_task(notify(book_id))
+        await self.book_repository.update(data=book_dict, id=book_id)
+        updated_book = await self.book_repository.find(id=book_id)
 
-        return updated_book
+        return BookRelationDTO.model_validate(updated_book)
 
     async def delete_book(self, book_id: int) -> BookDTO:
         book = await self.book_repository.delete(id=book_id)
@@ -93,20 +108,56 @@ class BookService:
         with open(path_to_file, 'wb') as f:
             f.write(bytes(0))
 
-        book = await self.book_repository.update({"cover": url}, id=book_id)
+        book = await self.book_repository.update(data={"cover_url": url}, id=book_id)
 
         book_db = BookDTO.model_validate(book)
         return book_db
 
-    async def get_filtered_books(self, pg: Pagination, filters: BookFilter) -> MultiBookDTO:
-        books, total = await self.book_repository.find_books(
+    async def get_filtered_books(self, pg: Pagination, filters: BookFilter) -> MultiDTO[BookRelationDTO]:
+        books, total = await self.book_repository.find_all(
             limit=pg.limit,
             offset=pg.offset,
             order_by=pg.order_by,
-            filters=filters
+            condition=[
+                filters.condition,
+            ],
         )
 
-        return MultiBookDTO(
-            items=[BookDTO.model_validate(row) for row in books],
+        return MultiDTO(
+            items=[BookRelationDTO.model_validate(row) for row in books],
             total=total,
         )
+
+    async def add_copies(self, copies: List[BookCopyCreateDTO]) -> MultiDTO[BookRelationDTO]:
+        copies_dict = [row.model_dump() for row in copies]
+        copies = await self.book_repository.create_multiple(copies_dict)
+
+        ids = [copy.serial_num  for copy in copies]
+        books, total = await self.book_copy_repository.find_all(conditions=[
+            BookCopyORM.serial_num.in_(ids)
+        ])
+
+        list_books_dto = [BookRelationDTO.model_validate(row) for row in books]
+        return MultiDTO(items=list_books_dto, total=total)
+
+    async def delete_copies(self, copies: List[str]) -> MultiDTO[BookCopyDTO]:
+        db_copies = await self.book_copy_repository.delete(
+            conditions=[BookCopyORM.serial_num.in_(copies)]
+        )
+
+        return MultiDTO(items=db_copies, total=len(copies))
+
+    async def change_copy_status(self, new_status: BookCopyStatus, serial_num: str) -> BookCopyFullDTO:
+        print(f"\n\n{serial_num=}\n\n")
+        book_copy = await self.book_copy_repository.update(
+            data={ "status": new_status },
+            serial_num=serial_num,
+        )
+
+        if book_copy is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Book copy not found",
+            )
+
+        return BookCopyFullDTO.model_validate(book_copy)

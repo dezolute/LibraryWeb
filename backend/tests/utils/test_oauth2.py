@@ -1,58 +1,52 @@
-import unittest
+import pytest
+import jwt
 from datetime import timedelta
 
-import jwt
-
-from app.models import UserORM
-from app.repositories import UserRepository, AbstractRepository
+from app.models import ReaderORM
+from app.repositories import RepositoryFactory as RF
 from app.utils import OAuth2Utility
 from app.config import auth_config
 
-async def add_user():
-    user_repo: AbstractRepository = UserRepository()
+
+@pytest.mark.asyncio
+async def test_get_hashed_password():
+    hashed = OAuth2Utility.get_hashed_password("")
+    assert hashed is not None
+
+
+@pytest.mark.asyncio
+async def test_verify_password():
+    hashed = OAuth2Utility.get_hashed_password("123")
+    assert OAuth2Utility.verify_password("123", hashed)
+
+
+@pytest.mark.asyncio
+async def test_create_access_token():
+    data = {
+        "sub": "123@example.com",
+    }
+    token = OAuth2Utility.create_token(data, expires_delta=timedelta(minutes=15))
+    payload = jwt.decode(token, auth_config.JWT_SECRET, algorithms=[auth_config.JWT_ALGORITHM])
+    assert payload["sub"] == "123@example.com"
+
+
+@pytest.mark.asyncio
+async def get_current_reader():
+    reader_repo = RF.reader_repository()
     data = {
         "email": "dezo@example.com",
-        "name": "John Caminskiy",
         "encrypted_password": "123",
+        "verified": True
     }
-    db_user: UserORM = await user_repo.create(data)
+    db_reader: ReaderORM = await reader_repo.create(data)
+
     try:
-        yield db_user
-    finally:
-        await user_repo.delete(id=db_user.id)
-
-
-class TestOauth2Utility(unittest.TestCase):
-    def test_get_hashed_password(self):
-        hashed = OAuth2Utility.get_hashed_password("")
-        self.assertIsNotNone(hashed)
-
-    def test_verify_password(self):
-        hashed = OAuth2Utility.get_hashed_password("123")
-        is_veryfi = OAuth2Utility.verify_password('123', hashed)
-        self.assertTrue(is_veryfi)
-
-    def test_create_access_token(self):
-        data = {
-            "sub": "123@example.com",
-            "name": "John Caminskiy"
+        token_data = {
+            "sub": db_reader.email,
         }
-        token = OAuth2Utility.create_access_token(data, expires_delta=timedelta(minutes=15))
-        payload = jwt.decode(token, auth_config.JWT_SECRET, algorithms=[auth_config.JWT_ALGORITHM])
-        self.assertEqual(payload["sub"], "123@example.com")
-        self.assertEqual(payload["name"], "John Caminskiy")
-
-    async def test_get_current_user(self):
-        async with add_user() as db_user:
-            data = {
-                "sub": db_user.email,
-                "name": db_user.name
-            }
-
-            token = OAuth2Utility.create_access_token(data, expires_delta=timedelta(minutes=15))
-            user_dto = await OAuth2Utility.get_current_user(token)
-            self.assertIsNotNone(user_dto)
-            self.assertEqual(user_dto.id, db_user.id)
-
-if __name__ == '__main__':
-    unittest.main()
+        token = OAuth2Utility.create_token(token_data, expires_delta=timedelta(minutes=15))
+        reader_dto = await OAuth2Utility.get_current_reader(token)
+        assert reader_dto is not None
+        assert reader_dto.id == db_reader.id
+    finally:
+        await reader_repo.delete(id=db_reader.id)

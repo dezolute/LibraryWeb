@@ -1,7 +1,0 @@
-# TODO
-
-1. Create form for employees to add book in db
-2. Add function for set avatar to user
-3. Add search fields for sorting books
-
-1. Add endpoint to post book form data in db

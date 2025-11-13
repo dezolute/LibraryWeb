@@ -6,17 +6,23 @@ from redis.asyncio import Redis
 from app.config.database.redis_config import redis_config
 
 
+class EnumRedisDB(int, Enum):
+    CACHE = 0,
+    VERIFY = 1
+
+
 class RedisConnection:
-    def __init__(self, host, port):
+    def __init__(self, host, port, db):
         self.host = host
         self.port = port
+        self.db = db
         self.redis = None
 
     async def __aenter__(self):
         self.redis = Redis(
             host=self.host,
             port=self.port,
-            db=0,
+            db=self.db,
             decode_responses=True
         )
         return self.redis
@@ -32,10 +38,11 @@ class RedisDB:
         self.port = port
 
     @asynccontextmanager
-    async def get_connect(self):
+    async def get_connect(self, db: EnumRedisDB = EnumRedisDB.VERIFY):
         async with RedisConnection(
                 host=self.host,
                 port=self.port,
+                db=db.value
         ) as conn:
             try:
                 await conn.ping()
