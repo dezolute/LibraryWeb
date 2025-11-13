@@ -7,10 +7,11 @@ import {
   PauseCircleOutlined
 } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
+import CONFIG from './consts/config';
 
 const { RangePicker } = DatePicker;
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = CONFIG.API_URL;
 
 interface Book {
   id: number;
@@ -48,7 +49,8 @@ const RequestsManager = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
+  const [book, setBook] = useState('');
+  const [reader, setReader] = useState('');
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const navigate = useNavigate();
@@ -64,9 +66,10 @@ const RequestsManager = () => {
       }
 
       const params = new URLSearchParams();
-      if (query) params.set('q', query);
+      if (book) params.set('book', book);
+      if (reader) params.set('reader', reader);
       if (status) params.set('status', status);
-      if (dateRange?.[0]) params.set('from', dateRange[0].toISOString());
+      if (dateRange?.[0]) params.set('at', dateRange[0].toISOString());
       if (dateRange?.[1]) params.set('to', dateRange[1].toISOString());
 
       const url = params.toString() 
@@ -159,10 +162,17 @@ const RequestsManager = () => {
       
       <div className="flex flex-wrap gap-3 mb-4">
         <Input
-          placeholder="Поиск (книга, читатель)"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          style={{ width: 240 }}
+          placeholder="Книга"
+          value={book}
+          onChange={(e) => setBook(e.target.value)}
+          style={{ width: 200 }}
+          allowClear
+        />
+        <Input
+          placeholder="Читатель"
+          value={reader}
+          onChange={(e) => setReader(e.target.value)}
+          style={{ width: 200 }}
           allowClear
         />
         <Select
@@ -173,8 +183,8 @@ const RequestsManager = () => {
           onChange={(v) => setStatus(v)}
           options={[
             { label: 'Ожидает', value: 'PENDING' },
-            { label: 'Одобрено', value: 'APPROVED' },
-            { label: 'Отклонено', value: 'REJECTED' },
+            { label: 'Завершён', value: 'FULFILLED' },
+            { label: 'В очереди', value: 'QUEUED' },
           ]}
         />
         <RangePicker 
@@ -194,7 +204,7 @@ const RequestsManager = () => {
             key: 'reader',
             render: (_: unknown, record: Request) => {
               const email = record.reader?.email || record.reader_email || '—';
-              const name = record.reader?.profile?.full_name || record.reader_name || email.split('@')[0] || '—';
+              const name = record.reader?.profile?.full_name || record.reader_name || '—';
               return (
                 <div>
                   <div>{name}</div>

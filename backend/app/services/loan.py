@@ -79,7 +79,7 @@ class LoanService:
 
         copy = await self.book_service.change_copy_status(
             new_status=BookCopyStatus.AVAILABLE,
-            serial_num=loan.copy.serial_num
+            serial_num=loan.book_copy.serial_num
         )
         loan.copy = copy
 

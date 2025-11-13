@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal, Tabs, Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import CONFIG from '../consts/config';
 
 interface AuthModalProps {
   open: boolean;
@@ -25,7 +26,7 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const API_BASE = "http://127.0.0.1:8000/api";
+  const API_BASE = CONFIG.API_URL;
 
   const parseResponseBody = async (resp: Response) => {
     const contentType = resp.headers.get('content-type') || '';

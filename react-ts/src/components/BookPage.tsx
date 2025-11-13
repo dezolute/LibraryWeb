@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Typography, Spin, Alert, Card, Descriptions, Button, message, Modal } from 'antd';
 import { BookOutlined } from '@ant-design/icons';
+import CONFIG from './consts/config';
 
 const { Title, Paragraph } = Typography;
 
@@ -14,7 +15,7 @@ type Book = {
   cover_url?: string | null;
 };
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = CONFIG.API_URL;
 
 const BookPage = () => {
   const { id } = useParams();

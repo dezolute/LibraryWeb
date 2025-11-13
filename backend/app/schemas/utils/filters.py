@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Optional, List, TypeVar, Type, Generic
+from typing import Annotated, Optional, List, TypeVar
 
 from fastapi import Query
 from pydantic import BaseModel
 from sqlalchemy import ClauseElement
 
 from app.models import BookORM, RequestORM, LoanORM
+from app.models.types import RequestStatus
 
 
 class BookFilter(BaseModel):
@@ -29,11 +30,11 @@ class BookFilter(BaseModel):
 SqlModelType = TypeVar("SqlModelType")
 
 
-class Filter[SqlModelType](BaseModel):
+class Filter(BaseModel):
     book: Annotated[Optional[str], Query(None)]
     reader: Annotated[Optional[str], Query(None)]
     at: Annotated[Optional[datetime], Query(None)]
-    to: Annotated[Optional[datetime], Query(default=datetime.now())]
+    to: Annotated[Optional[datetime], Query(None)]
 
     @property
     def conditions(self) -> List[ClauseElement]:
@@ -42,32 +43,42 @@ class Filter[SqlModelType](BaseModel):
         if self.at and self.to:
             self.at = self.at.replace(tzinfo=None)
             self.to = self.to.replace(tzinfo=None)
-            
-        if self.at == self.to:
-            self.to += timedelta(days=1)
+
+            if self.at == self.to:
+                self.to += timedelta(days=1)
+
+        return conditions
+
+
+class RequestFilter(Filter):
+    status: Annotated[Optional[RequestStatus], Query(None)]
+
+    @property
+    def conditions(self) -> List[ClauseElement]:
+        conditions = super().conditions
 
         if self.book:
-            conditions.append(SqlModelType.book.title.ilike(f"%{self.book}%"))
+            conditions.append(RequestORM.book.title.ilike(f"%{self.book}%"))
         if self.reader:
-            conditions.append(SqlModelType.reader.profile.full_name.ilike(f"%{self.reader}%"))
+            conditions.append(RequestORM.reader.profile.full_name.ilike(f"%{self.reader}%"))
 
-        return conditions
-
-
-class RequestFilter(Filter[RequestORM]):
-    @property
-    def conditions(self) -> List[ClauseElement]:
-        conditions = super().conditions
         if self.at and self.to:
-            conditions.append(LoanORM.issue_date.between(self.at, self.to))
+            conditions.append(RequestORM.created_at.between(self.at, self.to))
+        if self.status:
+            conditions.append(RequestORM.status == self.status.value)
 
         return conditions
 
 
-class LoanFilter(Filter[LoanORM]):
+class LoanFilter(Filter):
     @property
     def conditions(self) -> List[ClauseElement]:
         conditions = super().conditions
+        if self.book:
+            conditions.append(LoanORM.book_copy.book.title.ilike(f"%{self.book}%"))
+        if self.reader:
+            conditions.append(LoanORM.reader.profile.full_name.ilike(f"%{self.reader}%"))
+
         if self.at and self.to:
             conditions.append(LoanORM.issue_date.between(self.at, self.to))
 

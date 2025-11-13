@@ -1,6 +1,4 @@
-from app.schemas.relations.reader import ReaderRelationDTO
-from app.schemas.relations.semi_loan import LoanSemiRelationDTO
-
+from app.schemas.relations.reader import ReaderSemiRelationDTO, LoanSemiRelationDTO
 
 class LoanRelationDTO(LoanSemiRelationDTO):
-    reader: ReaderRelationDTO
+    reader: ReaderSemiRelationDTO

@@ -1,9 +1,5 @@
-from app.schemas import BookDTO, RequestDTO, ReaderDTO
-
-
-class RequestSemiRelationDTO(RequestDTO):
-    book: BookDTO
+from app.schemas.relations.reader import ReaderSemiRelationDTO, RequestSemiRelationDTO
 
 
 class RequestRelationDTO(RequestSemiRelationDTO):
-    reader: ReaderDTO
+    reader: ReaderSemiRelationDTO

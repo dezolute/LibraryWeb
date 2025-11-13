@@ -6,7 +6,7 @@ from starlette.responses import RedirectResponse
 
 from app.api.types import ReaderServiceType, CurrentReaderType, RequestServiceType
 from app.schemas import ReaderCreateDTO, RequestDTO
-from app.schemas.relations import ReaderRelationDTO, RequestSemiRelationDTO
+from app.schemas.relations import ReaderRelationDTO, RequestSemiRelationDTO, ReaderSemiRelationDTO
 
 reader_router = APIRouter(prefix="/readers", tags=["Readers"])
 
@@ -15,7 +15,7 @@ reader_router = APIRouter(prefix="/readers", tags=["Readers"])
 async def create_reader(
         reader: ReaderCreateDTO,
         reader_service: ReaderServiceType,
-) -> ReaderRelationDTO:
+) -> ReaderSemiRelationDTO:
     db_reader = await reader_service.add_reader(reader)
     return db_reader
 

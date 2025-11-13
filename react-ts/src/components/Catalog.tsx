@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Row, Col, Card, Pagination, Spin, Alert, Empty, Input, InputNumber, Button, Space } from 'antd';
 import { Link } from 'react-router-dom';
+import CONFIG from './consts/config';
 
 const { Meta } = Card;
 const BOOK_COVER = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn1.ozone.ru%2Fmultimedia%2Fc1200%2F1016455349.jpg&f=1&nofb=1&ipt=7c801e3df66770889cffc44b4742f072b4543c4dab123d2dfee47b02f08cde46";
@@ -15,7 +16,7 @@ interface Book {
   copies?: unknown[];
 }
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = CONFIG.API_URL;
 
 export const Catalog = () => {
   const [books, setBooks] = useState<Book[]>([]);

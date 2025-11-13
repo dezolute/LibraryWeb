@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Form, Input, InputNumber, Button, Select, Space, message, Upload } from 'antd';
 import { MinusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import CONFIG from './consts/config';
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = CONFIG;
 
 interface BookCopy {
   serial_num: string;

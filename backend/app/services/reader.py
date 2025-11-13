@@ -11,7 +11,7 @@ from app.modules.email import send_verify_email
 from app.modules.s3 import upload_file_to_s3
 from app.schemas import ReaderDTO, ReaderCreateDTO, ReaderUpdateDTO, ProfileDTO
 from app.schemas.profile import ProfileCreateDTO
-from app.schemas.relations import ReaderRelationDTO
+from app.schemas.relations import ReaderRelationDTO, ReaderSemiRelationDTO
 from app.repositories import RepositoryType
 from app.models.types import Role
 from app.utils import OAuth2Utility
@@ -27,7 +27,7 @@ class ReaderService:
         self.profile_repository: RepositoryType = profile_repository
         self.redis: RedisRepository = RedisRepository()
 
-    async def add_reader(self, reader: ReaderCreateDTO) -> ReaderDTO:
+    async def add_reader(self, reader: ReaderCreateDTO) -> ReaderSemiRelationDTO:
         reader_dict = reader.model_dump()
 
         clear_reader = ReaderUpdateDTO.model_validate(reader_dict)
@@ -63,7 +63,7 @@ class ReaderService:
             email=db_reader.email
         ))
 
-        return ReaderRelationDTO.model_validate(db_reader)
+        return ReaderSemiRelationDTO.model_validate(db_reader)
 
 
     async def set_icon_to_reader(self, reader_id: int, file: UploadFile):

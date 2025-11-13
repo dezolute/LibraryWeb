@@ -13,6 +13,4 @@ class RequestDTO(BaseModel):
     reader_id: Annotated[int, Field(ge=1)]
     book_id: Annotated[int, Field(ge=1)]
     status: RequestStatus
-    given_at: Annotated[Optional[datetime], Field(None)]
-    returned_at: Annotated[Optional[datetime], Field(None)]
     created_at: datetime

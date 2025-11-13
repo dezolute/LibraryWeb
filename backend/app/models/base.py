@@ -1,4 +1,4 @@
-from typing import List, Set, Type, TypeVar
+from typing import List, Set, Type, TypeVar, Any
 
 from sqlalchemy import inspect
 from sqlalchemy.orm import DeclarativeBase, selectinload
@@ -9,8 +9,8 @@ ModelType = TypeVar('ModelType')
 class Base(DeclarativeBase):
     __abstract__ = True
 
-    repr_cols_num = 10
-    repr_cols = tuple()
+    repr_cols_num: int = 10
+    repr_cols: list[str] = []
 
     def __repr__(self):
         cols = []
@@ -31,7 +31,7 @@ class Base(DeclarativeBase):
         visited.add(cls)
 
         loads = []
-        mapper = inspect(cls)
+        mapper: Any = inspect(cls)
 
         for rel in mapper.relationships:
             attr = getattr(cls, rel.key)

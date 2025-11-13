@@ -1,6 +1,6 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.params import Query, Body
 
 from app.api.types import PaginationType, CurrentReaderType, RequestServiceType
@@ -20,7 +20,7 @@ request_router = APIRouter(
 @request_router.get("")
 async def get_requests(
         pagination: PaginationType,
-        filters: RequestFilter,
+        filters: Annotated[RequestFilter, Depends()],
         current_reader: CurrentReaderType,
         request_service: RequestServiceType,
 ) -> MultiDTO[RequestRelationDTO]:

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Avatar, Card, Spin, Alert, Button, Table, Tag, Tabs } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import CONFIG from './consts/config';
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = CONFIG.API_URL;
 
 interface Profile {
   full_name: string;

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Table, Button, DatePicker, Input, Spin, Alert, message, Empty } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
+import { useNavigate } from 'react-router-dom';
+import CONFIG from './consts/config';
 
 const { RangePicker } = DatePicker;
 
@@ -29,7 +31,7 @@ interface Reader {
 }
 
 type Loan = {
-  id: number;
+  id: number
   reader_id: number;
   copy_id: string;
   issue_date: string; // ISO
@@ -46,7 +48,7 @@ type Loan = {
   returned_at?: string | null;
 };
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+const API_BASE = CONFIG.API_URL;
 
 const LoansPage = () => {
   const [loans, setLoans] = useState<Loan[]>([]);
@@ -58,6 +60,7 @@ const LoansPage = () => {
   const [book, setBook] = useState('');
   const [reader, setReader] = useState('');
   const [dateRange, setDateRange] = useState<Dayjs[] | null>(null);
+  const navigate = useNavigate();
   const token = localStorage.getItem('access_token');
 
   const fetchLoans = async (currentPage = 1, currentPageSize = 10) => {
@@ -70,10 +73,8 @@ const LoansPage = () => {
       params.set('offset', String(offset));
       if (book) params.set('book', book);
       if (reader) params.set('reader', reader)
-      if (dateRange) {
-        params.set('at', dateRange[0].toISOString());
-        params.set('to', dateRange[1].toISOString())
-      }
+      if (dateRange?.[0]) params.set('at', dateRange[0].toISOString());
+      if (dateRange?.[1]) params.set('to', dateRange[1].toISOString());
 
       const resp = await fetch(`${API_BASE}/loans?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -102,37 +103,57 @@ const LoansPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
+  const handleAction = async (loanId: number) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        navigate('/');
+        return;
+      }
+
+      const resp = await fetch(`${API_BASE}/loans/${loanId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!resp.ok) throw new Error('Не удалось обработать запрос');
+
+      message.success('Книга возвращенна');
+      fetchLoans();
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : 'Неизвестная ошибка');
+    }
+  };
+
   const columns: ColumnsType<Loan> = useMemo(() => [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      width: 80,
+      title: 'Читатель',
+      key: 'reader',
+      ellipsis: true,
+      render: (_: unknown, record: Loan) => {
+        const email = record.reader?.email || '—';
+        const name = record.reader?.profile?.full_name || record.reader_name || '—';
+        return (
+          <div>
+            <div>{name}</div>
+            <div className="text-sm text-gray-500">{email}</div>
+          </div>
+        );
+      },
     },
     {
       title: 'Серийный номер',
       key: 'serial_num',
       ellipsis: true,
       render: (_: unknown, record: Loan) => {
-        const serial_num = record.book_copy?.serial_num || record.book_title || '—';
-        return serial_num;
-      },
-    },
-    {
-      title: 'Книга',
-      key: 'book',
-      ellipsis: true,
-      render: (_: unknown, record: Loan) => {
         const title = record.book_copy?.book?.title || record.book_title || '—';
-        return title;
-      },
-    },
-    {
-      title: 'Читатель',
-      key: 'reader',
-      ellipsis: true,
-      render: (_: unknown, record: Loan) => {
-        const name = record.reader?.profile?.full_name || record.reader_name || record.reader?.email?.split('@')[0] || '—';
-        return name;
+        const serial_num = record.book_copy?.serial_num || record.book_title || '—';
+        return (
+          <div>
+            <div>{serial_num}</div>
+            <div className="text-sm text-gray-500">{title}</div>
+          </div>
+        );
       },
     },
     {
@@ -161,6 +182,21 @@ const LoansPage = () => {
         return date ? dayjs(date).format('DD.MM.YYYY') : '—';
       },
       width: 120,
+    },
+    {
+      title: 'Действия',
+      key: 'actions',
+      render: (_: unknown, record: Loan) => (
+        record.return_date === null && (
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleAction(record.id)}
+          >
+            Забрать кнгиу
+          </Button>
+        )
+      ),
     },
   ], []);
 
