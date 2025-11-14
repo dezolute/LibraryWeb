@@ -4,7 +4,7 @@ import { MinusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/i
 import { useNavigate } from 'react-router-dom';
 import CONFIG from './consts/config';
 
-const API_BASE = CONFIG;
+const API_BASE = CONFIG.API_URL;
 
 interface BookCopy {
   serial_num: string;

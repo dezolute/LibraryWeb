@@ -7,15 +7,10 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from starlette import status
 
-import app.repositories
 from app.config import auth_config
 from app.repositories import RepositoryFactory
 from app.schemas.relations import ReaderRelationDTO
 from app.schemas.utils import Token
-
-
-def get_repo():
-    return app.repositories.RepositoryFactory
 
 
 class OAuth2Utility:
