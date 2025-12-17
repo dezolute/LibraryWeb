@@ -1,16 +1,25 @@
-FROM node:alpine as build
+FROM node:18-alpine AS build
 
+WORKDIR /app
 
-COPY package.json package.json
-RUN npm install
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+
+RUN rm -rf node_modules package-lock.json && \
+    npm cache clean --force && \
+    npm install --legacy-peer-deps && \
+    npm rebuild esbuild
+
 COPY . .
-RUN npm run build
 
+RUN npm run build
 
 FROM nginx:stable-alpine
 
-COPY --from=build /dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
-CMD [ "nginx", "-g", "daemon off;" ]
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -17,11 +17,11 @@ class RequestORM(Base):
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    reader: Mapped["ReaderORM"] = relationship(
+    reader: Mapped["ReaderORM"] = relationship( # type: ignore
         "ReaderORM",
         back_populates="requests",
     )
-    book: Mapped["BookORM"] = relationship(
+    book: Mapped["BookORM"] = relationship( # type: ignore
         "BookORM",
         back_populates="requests",
     )

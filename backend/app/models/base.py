@@ -1,4 +1,4 @@
-from typing import List, Set, Type, TypeVar, Any
+from typing import List, Set, Type, TypeVar, Any, Union
 
 from sqlalchemy import inspect
 from sqlalchemy.orm import DeclarativeBase, selectinload
@@ -21,7 +21,7 @@ class Base(DeclarativeBase):
         return f"<{self.__class__.__name__} {", ".join(cols)}>"
 
     @classmethod
-    def get_loads(cls: Type[ModelType], visited: Set[Type] = None) -> List[LoaderOption]:
+    def get_loads(cls: Type[ModelType], visited: Union[Set[Type], None] = None) -> List[LoaderOption]:
         if visited is None:
             visited = set()
 

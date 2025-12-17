@@ -13,7 +13,7 @@ class BookCopyORM(Base):
     status: Mapped[BookCopyStatus] = mapped_column(default=BookCopyStatus.AVAILABLE)
     access_type: Mapped[BookAccessType] = mapped_column(default=BookAccessType.TAKE_HOME)
 
-    book: Mapped["BookORM"] = relationship(
+    book: Mapped["BookORM"] = relationship( # type: ignore
         "BookORM",
         back_populates="copies",
     )

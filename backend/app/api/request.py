@@ -52,12 +52,12 @@ async def give_book(
     request_id: int,
     current_reader: CurrentReaderType,
     request_service: RequestServiceType
-):
+) -> RequestDTO:
     if current_reader.role == Role.READER:
         raise Forbidden
 
     loan = await request_service.give_book(request_id)
-    return loan 
+    return loan
 
 @request_router.post("/notify")
 async def notify_requests(

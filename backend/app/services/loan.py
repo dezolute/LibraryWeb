@@ -13,7 +13,7 @@ from app.repositories import RepositoryType
 from app.models import LoanORM
 from app.models.types import BookCopyStatus
 from app.schemas import MultiDTO
-from app.schemas.loan import LoanCreateDTO
+from app.schemas.loan import LoanCreateDTO, LoanDTO
 from app.schemas.relations import LoanRelationDTO
 from app.schemas.utils import Pagination
 
@@ -21,11 +21,11 @@ from app.schemas.utils import Pagination
 class LoanService:
     def __init__(
             self,
-            loan_repository: RepositoryType,
+            loan_repository: RepositoryType, # type: ignore
             book_service: BookService,
             reader_service: ReaderService,
     ):
-        self.loan_repository: RepositoryType = loan_repository
+        self.loan_repository: RepositoryType = loan_repository # type: ignore
         self.book_service: BookService = book_service
         self.reader_service: ReaderService = reader_service
 
@@ -47,12 +47,11 @@ class LoanService:
         )
         return loans_db
 
-    async def create_loan(self, loan: LoanCreateDTO) -> LoanRelationDTO:
-        copy = None
+    async def create_loan(self, loan: LoanCreateDTO) -> LoanDTO:
         book = await self.book_service.get_single(id=loan.book_id)
         for copy in book.copies:
             if copy.status == BookCopyStatus.AVAILABLE:
-                copy = await self.book_service.change_copy_status(
+                await self.book_service.change_copy_status(
                     new_status=BookCopyStatus.BORROWED,
                     serial_num=copy.serial_num
                 )
@@ -67,13 +66,10 @@ class LoanService:
             "reader_id": loan.reader_id,
             "copy_id": copy.serial_num
         })
-        db_loan.copy = copy
 
-        db_loan.copy = copy
+        return LoanDTO.model_validate(db_loan)
 
-        return LoanRelationDTO.model_validate(db_loan)
-
-    async def set_loan_as_returned(self, loan_id) -> LoanRelationDTO:
+    async def set_loan_as_returned(self, loan_id: int) -> LoanRelationDTO:
         await self.loan_repository.update(data={ "return_date": datetime.now() }, id=loan_id)
         loan = await self.loan_repository.find(id=loan_id)
 

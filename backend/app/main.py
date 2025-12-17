@@ -38,7 +38,7 @@ admin = get_admin(app)
 
 
 @app.get("/")
-async def root():
+async def root() -> RedirectResponse:
     return RedirectResponse(url="/api/docs")
 
 
@@ -49,3 +49,5 @@ if __name__ == "__main__":
         port=8000,
         reload=True,
     )
+
+    

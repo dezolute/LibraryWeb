@@ -13,7 +13,7 @@ class ProfileORM(Base):
     avatar_url: Mapped[Optional[str]]
     full_name: Mapped[str]
 
-    reader: Mapped["ReaderORM"] = relationship(
+    reader: Mapped["ReaderORM"] = relationship( # type: ignore
         "ReaderORM",
         back_populates="profile",
         uselist=False,

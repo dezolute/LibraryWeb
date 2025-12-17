@@ -28,8 +28,8 @@ class BookService:
             book_repository: RepositoryType,
             book_copy_repository: RepositoryType
     ):
-        self.book_repository: RepositoryType = book_repository
-        self.book_copy_repository: RepositoryType = book_copy_repository
+        self.book_repository: RepositoryType = book_repository # type: ignore
+        self.book_copy_repository: RepositoryType = book_copy_repository # type: ignore
 
 
     async def get_single(self, get_orm: bool = False, **filters) -> BookRelationDTO:
@@ -44,7 +44,7 @@ class BookService:
         return BookRelationDTO.model_validate(book)
 
     async def get_multi(
-            self, pg: Pagination, book_filters: BookFilter = None, **filters
+            self, pg: Pagination, book_filters: BookFilter = None, **filters # type: ignore
     ) -> MultiDTO[BookRelationDTO]:
         books, total = await self.book_repository.find_all(
             pg=pg,
@@ -97,7 +97,7 @@ class BookService:
         return BookDTO.model_validate(book)
 
     async def set_cover_to_book(self, book_id: int, file: UploadFile) -> BookDTO:
-        ext = os.path.splitext(file.filename)[-1]
+        ext = os.path.splitext(file.filename)[-1] # type: ignore
         path_to_file = os.path.join(os.path.abspath("."), "temp", f"new_cover{ext}")
 
         with open(path_to_file, 'wb') as f:
@@ -119,7 +119,7 @@ class BookService:
             offset=pg.offset,
             order_by=pg.order_by,
             condition=[
-                filters.condition,
+                filters.condition, # type: ignore
             ],
         )
 

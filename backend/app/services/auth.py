@@ -8,8 +8,8 @@ from app.utils.auth.oauth2 import OAuth2Utility
 
 
 class AuthService:
-    def __init__(self, reader_repository: RepositoryType):
-        self.reader_repository: RepositoryType = reader_repository
+    def __init__(self, reader_repository: RepositoryType): # type: ignore
+        self.reader_repository: RepositoryType = reader_repository # type: ignore
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def login(self, form_data) -> Token:

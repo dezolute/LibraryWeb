@@ -17,9 +17,9 @@ class LoanORM(Base):
     due_date: Mapped[datetime] = mapped_column(default=datetime.now() + timedelta(days=14))
     return_date: Mapped[Optional[datetime]]
 
-    reader: Mapped["ReaderORM"] = relationship(
+    reader: Mapped["ReaderORM"] = relationship( # type: ignore
         back_populates="loans",
     )
-    book_copy: Mapped["BookCopyORM"] = relationship(
+    book_copy: Mapped["BookCopyORM"] = relationship( # type: ignore
         backref="loans",
     )
