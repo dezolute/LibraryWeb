@@ -17,17 +17,17 @@ class ReaderORM(Base):
     encrypted_password: Mapped[str]
     verified: Mapped[bool] = mapped_column(default=False)
 
-    requests: Mapped[Optional[list["RequestORM"]]] = relationship(
+    requests: Mapped[Optional[list["RequestORM"]]] = relationship( # type: ignore
         "RequestORM",
         back_populates="reader",
     )
-    profile: Mapped["ProfileORM"] = relationship(
+    profile: Mapped["ProfileORM"] = relationship( # type: ignore
         "ProfileORM",
         back_populates="reader",
         uselist=False,
         cascade="all, delete, delete-orphan",
     )
-    loans: Mapped[Optional[list["LoanORM"]]] = relationship(
+    loans: Mapped[Optional[list["LoanORM"]]] = relationship( # type: ignore
         "LoanORM",
         back_populates="reader",
     )

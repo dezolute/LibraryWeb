@@ -14,7 +14,7 @@ class BookClearDTO(BaseModel):
     title: Annotated[str, Field(max_length=100)]
     author: Annotated[str, Field(max_length=100)]
     publisher: Annotated[str, Field(max_length=100)]
-    year_publication: Annotated[int, Field(ge=1900)]
+    year_publication: int
 
 class BookCreateDTO(BookClearDTO):
     copies: list[BookCopyCreateDTO]

@@ -18,12 +18,12 @@ from app.services.loan import LoanService
 class RequestService:
     def __init__(
             self,
-            request_repository: RepositoryType,
+            request_repository: RepositoryType, # type: ignore
             reader_service: ReaderService,
             book_service: BookService,
             loan_service: LoanService,
     ):
-        self.request_repository: RepositoryType = request_repository
+        self.request_repository: RepositoryType = request_repository # type: ignore
         self.book_service: BookService = book_service
         self.reader_service: ReaderService = reader_service
         self.loan_service: LoanService = loan_service
@@ -37,7 +37,7 @@ class RequestService:
 
         reader = ReaderRelationDTO.model_validate(reader)
         for el in reader.requests:
-            if el.book.id == book_id:
+            if el.book.id == book_id and el.status != RequestStatus.FULFILLED:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="You have this book in requests",
@@ -149,17 +149,17 @@ class RequestService:
 
         return RequestDTO.model_validate(request)
 
-    async def give_book(self, request_id: int):
+    async def give_book(self, request_id: int) -> RequestDTO:
         request = await self.update_status(
             request_id=request_id,
-            new_status=RequestStatus.FULFILLED.value
+            new_status=RequestStatus.FULFILLED.value # type: ignore
         )
 
-        loan = await self.loan_service.create_loan(
+        await self.loan_service.create_loan(
             loan=LoanCreateDTO(
                 reader_id=request.reader_id,
                 book_id=request.book_id
             )
         )
-
-        return loan
+    
+        return request

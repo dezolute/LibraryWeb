@@ -23,8 +23,8 @@ class ReaderService:
             reader_repository: RepositoryType,
             profile_repository: RepositoryType,
     ):
-        self.reader_repository: RepositoryType = reader_repository
-        self.profile_repository: RepositoryType = profile_repository
+        self.reader_repository: RepositoryType = reader_repository # type: ignore
+        self.profile_repository: RepositoryType = profile_repository # type: ignore
         self.redis: RedisRepository = RedisRepository()
 
     async def add_reader(self, reader: ReaderCreateDTO) -> ReaderSemiRelationDTO:
@@ -67,7 +67,7 @@ class ReaderService:
 
 
     async def set_icon_to_reader(self, reader_id: int, file: UploadFile):
-        ext = os.path.splitext(file.filename)[-1]
+        ext = os.path.splitext(file.filename)[-1] # type: ignore
         path_to_file = os.path.join(os.path.abspath("."), "temp", f"new_icon{ext}")
 
         with open(path_to_file, 'wb') as f:

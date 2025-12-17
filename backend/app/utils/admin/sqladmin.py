@@ -1,24 +1,32 @@
 from fastapi import FastAPI
-from sqladmin import ModelView, Admin
+from sqladmin import Admin
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
 from app.config import auth_config
 from app.config.database import db
-from app.models import BookORM, ReaderORM, RequestORM
 from app.models.types import Role
 from app.repositories import RepositoryType, RepositoryFactory as RF
 from app.utils import OAuth2Utility
+from app.utils.admin.views import (
+    BookAdmin,
+    BookCopyAdmin,
+    LoanAdmin,
+    ProfileAdmin,
+    ReaderAdmin,
+    RequestAdmin
+)
 
 
 class AdminAuth(AuthenticationBackend):
     def __init__(self, secret_key: str) -> None:
-        self.reader_repository: RepositoryType = RF.reader_repository()
+        self.reader_repository = RF.reader_repository()
         super().__init__(secret_key)
 
     async def login(self, request: Request) -> bool:
         form = await request.form()
-        email, password = form["username"], form["password"]
+        email: str = form.get("username") # type: ignore
+        password: str = form.get("password") # type: ignore
 
         db_reader = await self.reader_repository.find(email=email)
         if not db_reader:
@@ -48,54 +56,6 @@ class AdminAuth(AuthenticationBackend):
 
         return True
 
-
-class BaseAdmin(ModelView):
-    column_list = []
-    pk_columns = ['id']
-    show_primary_keys = True
-    column_sortable_list = column_list
-    column_searchable_list = column_list
-
-
-class ReaderAdmin(BaseAdmin, model=ReaderORM):
-    column_list = [
-        'id',
-        'name',
-        'email',
-        'role',
-        'verified',
-    ]
-    column_details_exclude_list = [
-        'encrypted_password',
-        'requests'
-    ]
-
-
-class BookAdmin(BaseAdmin, model=BookORM):
-    
-    column_list = [
-        'id',
-        'title',
-        'author',
-        'priority',
-        'count',
-        'year_publication'
-    ]
-
-    column_details_exclude_list = ['requests']
-
-
-class RequestAdmin(BaseAdmin, model=RequestORM):
-    column_list = [
-        'id',
-        'reader_id',
-        'book_id',
-        'status',
-        'created_at',
-        'updated_at',
-    ]
-
-
 def get_admin(app: FastAPI) -> Admin:
     backend_auth = AdminAuth(auth_config.JWT_SECRET)
 
@@ -108,8 +68,11 @@ def get_admin(app: FastAPI) -> Admin:
     )
 
     admin.add_view(ReaderAdmin)
+    admin.add_view(ProfileAdmin)
     admin.add_view(BookAdmin)
+    admin.add_view(BookCopyAdmin)
     admin.add_view(RequestAdmin)
+    admin.add_view(LoanAdmin)
 
     return admin
 

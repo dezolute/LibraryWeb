@@ -15,13 +15,13 @@ class BookORM(Base):
     cover_url: Mapped[Optional[str]]
     year_publication: Mapped[int]
 
-    copies: Mapped[list["BookCopyORM"]] = relationship(
+    copies: Mapped[list["BookCopyORM"]] = relationship( # type: ignore
         "BookCopyORM",
         back_populates="book",
         cascade="all, delete, delete-orphan",
     )
 
-    requests: Mapped[Optional[list["RequestORM"]]] = relationship(
+    requests: Mapped[Optional[list["RequestORM"]]] = relationship( # type: ignore
         "RequestORM",
         back_populates="book"
     )
