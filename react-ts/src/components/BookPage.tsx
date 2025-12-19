@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Typography, Spin, Alert, Card, Descriptions, Button, message, Modal } from 'antd';
-import { BookOutlined } from '@ant-design/icons';
+import { Row, Col, Typography, Spin, Alert, Card, Descriptions, Button, message, Modal, Table, Tag, Space } from 'antd';
+import { BookOutlined, CopyOutlined } from '@ant-design/icons';
 import CONFIG from './consts/config';
 
 const { Title, Paragraph } = Typography;
+
+type BookCopy = {
+  serial_num: string;
+  status: string;
+  access_type: string;
+};
 
 type Book = {
   id: number;
@@ -13,6 +19,7 @@ type Book = {
   publisher: string;
   year_publication: number;
   cover_url?: string | null;
+  copies: BookCopy[];
 };
 
 const API_BASE = CONFIG.API_URL;
@@ -136,10 +143,46 @@ const BookPage = () => {
     ? (book.cover_url.startsWith('http') ? book.cover_url : `${API_BASE}${book.cover_url}`)
     : undefined;
 
+  // Колонки для таблицы копий
+  const copyColumns = [
+    {
+      title: 'Серийный номер',
+      dataIndex: 'serial_num',
+      key: 'serial_num',
+      render: (serial_num: string) => (
+        <Space>
+          <CopyOutlined />
+          <span>{serial_num}</span>
+        </Space>
+      ),
+    },
+    {
+      title: 'Статус',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => {
+        const color = status === 'AVAILABLE' ? 'green' : status === 'RESERVED' ? 'orange' : 'red';
+        return <Tag color={color}>{status}</Tag>;
+      },
+    },
+    {
+      title: 'Тип доступа',
+      dataIndex: 'access_type',
+      key: 'access_type',
+      render: (access_type: string) => (
+        <Tag>{access_type}</Tag>
+      ),
+    },
+  ];
+
+  const availableCopies = book.copies.filter(copy => copy.status === 'AVAILABLE').length;
+
   return (
-    <div className="max-w-5xl mx-auto px-4">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <Title level={2} className="mb-6">{book.title}</Title>
+      
       <Row gutter={[24, 24]}>
+        {/* Обложка */}
         <Col xs={24} md={8}>
           <Card
             cover={
@@ -155,26 +198,63 @@ const BookPage = () => {
             {!coverSrc && <Paragraph className="text-center text-gray-500">Обложка отсутствует</Paragraph>}
           </Card>
         </Col>
+
+        {/* Информация о книге */}
         <Col xs={24} md={16}>
-          <Descriptions bordered column={1} size="middle">
+          <Descriptions bordered column={1} size="middle" className="mb-6">
             <Descriptions.Item label="Автор">{book.author}</Descriptions.Item>
             <Descriptions.Item label="Издательство">{book.publisher}</Descriptions.Item>
             <Descriptions.Item label="Год публикации">{book.year_publication}</Descriptions.Item>
             <Descriptions.Item label="ID">{book.id}</Descriptions.Item>
+            <Descriptions.Item label="Экземпляров всего">
+              <Tag color="blue">{book.copies.length}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Доступно">
+              <Tag color="green">{availableCopies}</Tag>
+            </Descriptions.Item>
           </Descriptions>
-          <div className="mt-4">
+
+          <div className="mb-6">
+            {/* ✅ УБРАНА БЛОКИРОВКА КНОПКИ */}
             <Button
               type="primary"
               size="large"
               icon={<BookOutlined />}
               onClick={handleOpenModal}
             >
-              Запросить книгу
+              Запросить книгу ({availableCopies} доступно)
             </Button>
           </div>
         </Col>
       </Row>
 
+      {/* Таблица копий */}
+      <Card 
+        title={
+          <Space>
+            <CopyOutlined />
+            Экземпляры книги ({book.copies.length})
+          </Space>
+        } 
+        className="mt-6"
+      >
+        <Table
+          dataSource={book.copies}
+          columns={copyColumns}
+          rowKey="serial_num"
+          pagination={false}
+          size="middle"
+          scroll={{ x: 600 }}
+        />
+        
+        {book.copies.length === 0 && (
+          <div className="text-center py-8">
+            <Paragraph type="secondary">Экземпляры отсутствуют</Paragraph>
+          </div>
+        )}
+      </Card>
+
+      {/* Модальное окно - ТОЖЕ УБРАНА БЛОКИРОВКА */}
       <Modal
         title="Подтверждение запроса"
         open={isModalOpen}
@@ -183,12 +263,15 @@ const BookPage = () => {
         confirmLoading={requestLoading}
         okText="Подтвердить"
         cancelText="Отмена"
+        // ✅ УБРАНО: okButtonProps={{ disabled: availableCopies === 0 }}
       >
         <div className="py-4">
           <p>Вы уверены, что хотите создать запрос на книгу:</p>
           <p className="font-semibold text-lg mt-2">{book.title}</p>
           <p className="text-gray-600 mt-1">Автор: {book.author}</p>
-          <p className="text-gray-600">Издательство: {book.publisher}</p>
+          <p className="text-gray-600">
+            Доступно экземпляров: <Tag color="green">{availableCopies}</Tag>
+          </p>
         </div>
       </Modal>
     </div>
@@ -196,5 +279,3 @@ const BookPage = () => {
 };
 
 export default BookPage;
-
-
