@@ -8,18 +8,21 @@ from starlette import status
 from app.models import BookCopyORM
 from app.models.types import BookCopyStatus, RequestStatus
 from app.modules.s3 import upload_file_to_s3
-from app.schemas import BookDTO, BookCreateDTO, MultiDTO, BookCopyCreateDTO, BookCopyFullDTO, BookCopyDTO
+from app.schemas import (
+    BookDTO,
+    BookCreateDTO,
+    MultiDTO,
+    BookCopyCreateDTO,
+    BookCopyFullDTO,
+    BookCopyDTO,
+    BookClearDTO
+)
 from app.schemas.relations import BookRelationDTO
 from app.schemas.utils import Pagination
 from app.schemas.utils.filters import BookFilter
 from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.models.book import BookORM
 from app.models.request import RequestORM
-
-
-async def notify(book_id: int, host: str):
-    async with aiohttp.ClientSession() as session:
-        await session.post(f"http://{host}/requests/notify", data=book_id)
 
 
 class BookService:
@@ -76,7 +79,7 @@ class BookService:
         list_books_dto = [BookDTO.model_validate(row) for row in db_books]
         return list_books_dto
 
-    async def update_book(self, book_id: int, book: BookCreateDTO) -> BookDTO:
+    async def update_book(self, book_id: int, book: BookClearDTO) -> BookDTO:
         db_book = await self.book_repository.find(id=book_id)
         if db_book is None:
             raise HTTPException(
