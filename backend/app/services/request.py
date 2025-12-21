@@ -124,17 +124,11 @@ class RequestService:
         return RequestDTO.model_validate(request)
 
     async def send_notify(self, id: int) -> RequestDTO:
-        request_list, _ = await self.request_repository.find_all(
-            pg=Pagination(
-                limit=1,
-                offset=0,
-                order_by="id",
-            ),
-            book_id=id,
-            status=RequestStatus.QUEUED
+        request = await self.request_repository.find(
+            id=id,
+            status=RequestStatus.PENDING
         )
 
-        request = next(iter(request_list), None)
         if request is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

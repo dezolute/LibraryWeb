@@ -187,8 +187,8 @@ const BookPage = () => {
               coverSrc ? (
                 <img 
                   alt={book.title} 
-                  src={coverSrc} 
-                  style={{ width: '100%', height: 'auto', maxHeight: 420, objectFit: 'contain', backgroundColor: '#fff' }} 
+                  src={coverSrc}
+                  className='w-full h-auto, max-[420px] object-cover bg-white' 
                 />
               ) : undefined
             }
