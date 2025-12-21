@@ -1,3 +1,3 @@
 from .base import AbstractRepository as AbstractRepository
-from .factory import RepositoryFactory as RepositoryFactory, RepositoryType as RepositoryType
-from .sqlalchemy import ModelType
+from .factory import RepositoryFactory as RepositoryFactory
+from .sqlalchemy import SqlAlchemyRepository as SqlAlchemyRepository

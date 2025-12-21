@@ -13,7 +13,7 @@ ModelType = TypeVar('ModelType', bound=Base)
 
 class SqlAlchemyRepository[ModelType](AbstractRepository):
     def __init__(self, model: Type[ModelType]):
-        self.model: Type[ModelType] = model
+        self.model: Type = model
 
     async def create(self, data: dict) -> ModelType:
         async with db.get_session() as session:
@@ -34,28 +34,18 @@ class SqlAlchemyRepository[ModelType](AbstractRepository):
             session.add_all(list_models)
             await session.commit()
 
-            pk = self.model.__mapper__.primary_key[0]
-            ids = [getattr(obj, pk.key) for obj in list_models]
-            query = (
-                select(self.model)
-                .where(pk.in_(ids))
-                .options(*self.model.get_loads())
-            )
-
-            result = await session.execute(query)
-
-            return result.scalars().unique().all()
+            return list_models
 
     async def update(
             self,
             data: dict,
-            conditions: List[ClauseElement] = None,
+            conditions: List[ClauseElement] | None = None,
             **filters
     ) -> ModelType:
         async with db.get_session() as session:
             stmt = (
-                update(self.model)
-                .where(*(conditions or []))
+                update(self.model)   
+                .where(*(conditions or [])) # type: ignore
                 .values(**data)
                 .filter_by(**filters)
                 .returning(self.model)
@@ -64,16 +54,16 @@ class SqlAlchemyRepository[ModelType](AbstractRepository):
             result = await session.execute(stmt)
             await session.commit()
 
-            return result.scalar_one_or_none()
+            return result.scalar_one_or_none() # type: ignore
 
     async def delete(self,
-        conditions: List[ClauseElement] = None,
+        conditions: List[ClauseElement] | None = None,
         **filters
     ) -> ModelType:
         async with db.get_session() as session:
             stmt = (
                 delete(self.model)
-                .where(*(conditions or []))
+                .where(*(conditions or [])) # type: ignore
                 .filter_by(**filters)
                 .returning(self.model)
             )
@@ -81,37 +71,37 @@ class SqlAlchemyRepository[ModelType](AbstractRepository):
             result = await session.execute(stmt)
             await session.commit()
 
-            return result.scalar_one_or_none()
+            return result.scalar_one_or_none() # type: ignore
 
     async def find(
             self,
-            conditions: List[ClauseElement] = None,
+            conditions: List[ClauseElement] | None = None,
             **filters
     ) -> ModelType:
         async with db.get_session() as session:
             query = (
                 select(self.model)
-                .where(*(conditions or []))
+                .where(*(conditions or [])) # type: ignore
                 .options(*self.model.get_loads())
                 .filter_by(**filters)
             )
 
             result = await session.execute(query)
-            return result.scalars().first()
+            return result.scalars().first() # type: ignore
 
     async def find_all(
             self,
-            pg: Pagination = None,
-            conditions: List[ClauseElement] = None,
+            pg: Pagination | None = None,
+            conditions: List[ClauseElement] | None = None,
             **filters,
     ) -> Tuple[List[ModelType], int]:
         async with db.get_session() as session:
             if pg is None:
-                pg = Pagination()
+                pg = Pagination() # type: ignore
 
             query = (
                 select(self.model)
-                .where(*(conditions or []))
+                .where(*(conditions or [])) # type: ignore
                 .limit(pg.limit)
                 .offset(pg.offset)
                 .order_by(pg.order_by)
@@ -120,10 +110,10 @@ class SqlAlchemyRepository[ModelType](AbstractRepository):
             )
 
             count_query = select(func.count()).select_from(
-                select(self.model).where(*(conditions or [])).filter_by(**filters).subquery()
+                select(self.model).where(*(conditions or [])).filter_by(**filters).subquery() # type: ignore
             )
 
             result = await session.execute(query)
             total = await session.execute(count_query)
 
-            return result.unique().scalars().all(), total.scalar()
+            return result.unique().scalars().all(), total.scalar() # type: ignore

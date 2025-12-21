@@ -3,30 +3,28 @@ from typing import TypeVar
 from app.models import ReaderORM, BookORM, BookCopyORM, LoanORM, RequestORM, ProfileORM
 from app.repositories.sqlalchemy import SqlAlchemyRepository
 
-RepositoryType = TypeVar("RepositoryType", bound=SqlAlchemyRepository)
-
 class RepositoryFactory:
 
     @staticmethod
-    def reader_repository() -> RepositoryType:
-        return SqlAlchemyRepository(ReaderORM)
+    def reader_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[ReaderORM](ReaderORM)
 
     @staticmethod
-    def book_repository() -> RepositoryType:
-        return SqlAlchemyRepository(BookORM)
+    def book_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[BookORM](BookORM)
 
     @staticmethod
-    def book_copy_repository() -> RepositoryType:
-        return SqlAlchemyRepository(BookCopyORM)
+    def book_copy_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[BookCopyORM](BookCopyORM)
 
     @staticmethod
-    def loan_repository() -> RepositoryType:
-        return SqlAlchemyRepository(LoanORM)
+    def loan_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[LoanORM](LoanORM)
 
     @staticmethod
-    def request_repository() -> RepositoryType:
-        return SqlAlchemyRepository(RequestORM)
+    def request_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[RequestORM](RequestORM)
 
     @staticmethod
-    def profile_repository() -> RepositoryType:
-        return SqlAlchemyRepository(ProfileORM)
+    def profile_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[ProfileORM](ProfileORM)

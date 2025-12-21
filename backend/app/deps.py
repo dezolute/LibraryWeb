@@ -20,7 +20,8 @@ class Deps:
     def book_service() -> BookService:
         return BookService(
             RF.book_repository(),
-            RF.book_copy_repository()
+            RF.book_copy_repository(),
+            RF.request_repository()
         )
 
     @staticmethod

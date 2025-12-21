@@ -13,7 +13,9 @@ from app.models.types import Role
 from app.schemas import (
     BookCreateDTO,
     BookDTO,
-    MultiDTO, BookCopyCreateDTO,
+    MultiDTO,
+    BookCopyCreateDTO,
+    BookCopyFullDTO,
 )
 from app.schemas.relations import BookRelationDTO
 from app.schemas.utils import BookFilter
@@ -30,7 +32,7 @@ async def create_book(
         book: BookCreateDTO,
         current_reader: CurrentReaderType,
         book_service: BookServiceType,
-) -> BookRelationDTO:
+) -> BookDTO:
     if current_reader.role == Role.READER:
         raise Forbidden
 
@@ -43,7 +45,7 @@ async def create_multi(
         books: List[BookCreateDTO],
         current_reader: CurrentReaderType,
         book_service: BookServiceType,
-) -> List[BookRelationDTO]:
+) -> List[BookDTO]:
     if current_reader.role == Role.READER:
         raise Forbidden
 
@@ -68,7 +70,7 @@ async def get_book(
         book_id: int,
         book_service: BookServiceType
 ) -> BookRelationDTO:
-    book = await book_service.get_single(id=book_id)
+    book: BookRelationDTO = await book_service.get_single(id=book_id) # type: ignore
     return book
 
 
@@ -114,12 +116,13 @@ async def delete_book(
 
 @book_router.post("/{book_id}/copies")
 async def add_copies(
+    book_id: int,
     copies: List[BookCopyCreateDTO],
     book_service: BookServiceType,
     current_reader: CurrentReaderType,
-):
+) -> List[BookCopyFullDTO]:
     if current_reader.role == Role.READER:
         raise Forbidden
 
-    db_copies = await book_service.add_copies(copies)
+    db_copies = await book_service.add_copies(book_id, copies)
     return db_copies

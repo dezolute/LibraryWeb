@@ -12,7 +12,7 @@ class LoanORM(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     reader_id: Mapped[int] = mapped_column(ForeignKey('readers.id'))
-    copy_id: Mapped[str] = mapped_column(ForeignKey('book_copies.serial_num'))
+    copy_id: Mapped[str] = mapped_column(ForeignKey('book_copies.serial_num', ondelete="CASCADE"))
     issue_date: Mapped[datetime] = mapped_column(default=datetime.now())
     due_date: Mapped[datetime] = mapped_column(default=datetime.now() + timedelta(days=14))
     return_date: Mapped[Optional[datetime]]

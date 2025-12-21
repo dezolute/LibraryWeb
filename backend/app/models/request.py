@@ -12,7 +12,7 @@ class RequestORM(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     reader_id: Mapped[int] = mapped_column(ForeignKey('readers.id'))
-    book_id: Mapped[int] = mapped_column(ForeignKey('books.id'))
+    book_id: Mapped[int] = mapped_column(ForeignKey('books.id', ondelete="CASCADE"))
     status: Mapped[RequestStatus] = mapped_column(default=RequestStatus.PENDING)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

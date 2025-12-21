@@ -143,7 +143,6 @@ const BookPage = () => {
     ? (book.cover_url.startsWith('http') ? book.cover_url : `${API_BASE}${book.cover_url}`)
     : undefined;
 
-  // Колонки для таблицы копий
   const copyColumns = [
     {
       title: 'Серийный номер',
@@ -182,7 +181,6 @@ const BookPage = () => {
       <Title level={2} className="mb-6">{book.title}</Title>
       
       <Row gutter={[24, 24]}>
-        {/* Обложка */}
         <Col xs={24} md={8}>
           <Card
             cover={
@@ -199,7 +197,6 @@ const BookPage = () => {
           </Card>
         </Col>
 
-        {/* Информация о книге */}
         <Col xs={24} md={16}>
           <Descriptions bordered column={1} size="middle" className="mb-6">
             <Descriptions.Item label="Автор">{book.author}</Descriptions.Item>
@@ -215,7 +212,6 @@ const BookPage = () => {
           </Descriptions>
 
           <div className="mb-6">
-            {/* ✅ УБРАНА БЛОКИРОВКА КНОПКИ */}
             <Button
               type="primary"
               size="large"
@@ -228,7 +224,6 @@ const BookPage = () => {
         </Col>
       </Row>
 
-      {/* Таблица копий */}
       <Card 
         title={
           <Space>
@@ -254,7 +249,6 @@ const BookPage = () => {
         )}
       </Card>
 
-      {/* Модальное окно - ТОЖЕ УБРАНА БЛОКИРОВКА */}
       <Modal
         title="Подтверждение запроса"
         open={isModalOpen}
@@ -263,7 +257,6 @@ const BookPage = () => {
         confirmLoading={requestLoading}
         okText="Подтвердить"
         cancelText="Отмена"
-        // ✅ УБРАНО: okButtonProps={{ disabled: availableCopies === 0 }}
       >
         <div className="py-4">
           <p>Вы уверены, что хотите создать запрос на книгу:</p>
