@@ -9,6 +9,7 @@ from app.schemas import MultiDTO
 from app.schemas.relations import LoanRelationDTO
 from app.schemas.utils.filters import LoanFilter
 from app.utils.errors import Forbidden
+from app.schemas.loan import LoanDTO
 
 loan_router = APIRouter(
     prefix="/loans",
@@ -37,7 +38,7 @@ async def set_loan_returned(
     loan_id: int,
     loan_service: LoanServiceType,
     current_reader: CurrentReaderType
-):
+) -> LoanDTO:
     if current_reader == Role.READER:
         raise Forbidden
 

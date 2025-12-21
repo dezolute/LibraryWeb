@@ -158,7 +158,7 @@ const RequestsManager = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-semibold mb-6">Управление запросами</h1>
+      <h1 className="text-2xl font-semibold mb-6">Управление заявками</h1>
       
       <div className="flex flex-wrap gap-3 mb-4">
         <Input

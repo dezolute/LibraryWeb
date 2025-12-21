@@ -58,11 +58,3 @@ async def give_book(
 
     loan = await request_service.give_book(request_id)
     return loan
-
-@request_router.post("/notify")
-async def notify_requests(
-        book_id: Annotated[int, Body(embeded=True)],
-        request_service:RequestServiceType,
-):
-    response = await request_service.send_notify(book_id)
-    return response

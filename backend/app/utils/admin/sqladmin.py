@@ -6,7 +6,7 @@ from starlette.requests import Request
 from app.config import auth_config
 from app.config.database import db
 from app.models.types import Role
-from app.repositories import RepositoryType, RepositoryFactory as RF
+from app.repositories import RepositoryFactory as RF
 from app.utils import OAuth2Utility
 from app.utils.admin.views import (
     BookAdmin,
@@ -75,5 +75,3 @@ def get_admin(app: FastAPI) -> Admin:
     admin.add_view(LoanAdmin)
 
     return admin
-
-# TODO: fix admin panel

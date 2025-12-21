@@ -8,8 +8,9 @@ import RequestsManager from './components/RequestsManager';
 import BookForm from './components/BookForm';
 import BookPage from './components/BookPage';
 import LoansPage from './components/LoansPage';
+import BooksAdminPage from './components/BooksAdminPage';
+import BookCopiesAdminPage from './components/BookCopiesAdminPage';
 
-// Настройка темы Ant Design
 const theme = {
   components: {
     Layout: {
@@ -38,13 +39,16 @@ function App() {
             <Route path="/" element={<MainLayout><Home /></MainLayout>} />
             <Route path="/catalog" element={<MainLayout><Catalog /></MainLayout>} />
             <Route path="/book/:id" element={<MainLayout><BookPage /></MainLayout>} />
-            <Route path="/loans" element={<MainLayout><LoansPage /></MainLayout>} />
             <Route path="/account" element={<MainLayout><Account /></MainLayout>} />
             <Route path="/about" element={<MainLayout><div>О нас</div></MainLayout>} />
             <Route path="/privacy" element={<MainLayout><div>Политика конфиденциальности</div></MainLayout>} />
             <Route path="/terms" element={<MainLayout><div>Условия использования</div></MainLayout>} />
-            <Route path="/employee/book/add" element={<MainLayout><BookForm /></MainLayout>} />
+            
+            <Route path="/employee/loans" element={<MainLayout><LoansPage /></MainLayout>} />
+            <Route path="/employee/books/add" element={<MainLayout><BookForm /></MainLayout>} />
             <Route path="/employee/requests" element={<MainLayout><RequestsManager /></MainLayout>} />
+            <Route path="/employee/books/" element={<MainLayout><BooksAdminPage/></MainLayout>} />
+            <Route path="/employee/books/:id/copies" element={<MainLayout><BookCopiesAdminPage/></MainLayout>} />
           </Routes>
         </BrowserRouter>
       </div>

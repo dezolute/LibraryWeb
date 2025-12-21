@@ -236,8 +236,8 @@ const LoansPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold">Займы</h2>
-        <Button type="primary" onClick={downloadOverdueReport}>Отчет по просроченным</Button>
+        <h2 className="text-2xl font-semibold">Выданные книги</h2>
+        <Button type="primary" onClick={downloadOverdueReport}>Отчет по проссроченым долгам</Button>
       </div>
 
       <div className="flex flex-wrap gap-3 mb-4">

@@ -1,7 +1,6 @@
 import asyncio
 import os
 import secrets
-from typing import Dict
 
 from fastapi import UploadFile, HTTPException
 from starlette import status
@@ -9,22 +8,22 @@ from starlette import status
 from app.modules import RedisRepository
 from app.modules.email import send_verify_email
 from app.modules.s3 import upload_file_to_s3
-from app.schemas import ReaderDTO, ReaderCreateDTO, ReaderUpdateDTO, ProfileDTO
-from app.schemas.profile import ProfileCreateDTO
+from app.schemas import ReaderDTO, ReaderCreateDTO, ReaderUpdateDTO
 from app.schemas.relations import ReaderRelationDTO, ReaderSemiRelationDTO
-from app.repositories import RepositoryType
-from app.models.types import Role
+from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.utils import OAuth2Utility
+from app.models.profile import ProfileORM
+from app.models.reader import ReaderORM
 
 
 class ReaderService:
     def __init__(
             self,
-            reader_repository: RepositoryType,
-            profile_repository: RepositoryType,
+            reader_repository: SqlAlchemyRepository[ReaderORM],
+            profile_repository: SqlAlchemyRepository[ProfileORM],
     ):
-        self.reader_repository: RepositoryType = reader_repository # type: ignore
-        self.profile_repository: RepositoryType = profile_repository # type: ignore
+        self.reader_repository: SqlAlchemyRepository[ReaderORM] = reader_repository
+        self.profile_repository: SqlAlchemyRepository[ProfileORM] = profile_repository
         self.redis: RedisRepository = RedisRepository()
 
     async def add_reader(self, reader: ReaderCreateDTO) -> ReaderSemiRelationDTO:

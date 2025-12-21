@@ -9,7 +9,7 @@ from starlette import status
 
 from app.services.book import BookService
 from app.services.reader import ReaderService
-from app.repositories import RepositoryType
+from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.models import LoanORM
 from app.models.types import BookCopyStatus
 from app.schemas import MultiDTO
@@ -21,11 +21,11 @@ from app.schemas.utils import Pagination
 class LoanService:
     def __init__(
             self,
-            loan_repository: RepositoryType, # type: ignore
+            loan_repository: SqlAlchemyRepository[LoanORM],
             book_service: BookService,
             reader_service: ReaderService,
     ):
-        self.loan_repository: RepositoryType = loan_repository # type: ignore
+        self.loan_repository: SqlAlchemyRepository[LoanORM] = loan_repository
         self.book_service: BookService = book_service
         self.reader_service: ReaderService = reader_service
 
@@ -50,7 +50,7 @@ class LoanService:
     async def create_loan(self, loan: LoanCreateDTO) -> LoanDTO:
         book = await self.book_service.get_single(id=loan.book_id)
         for copy in book.copies:
-            if copy.status == BookCopyStatus.AVAILABLE:
+            if copy.status == BookCopyStatus.RESERVED:
                 await self.book_service.change_copy_status(
                     new_status=BookCopyStatus.BORROWED,
                     serial_num=copy.serial_num
@@ -69,17 +69,17 @@ class LoanService:
 
         return LoanDTO.model_validate(db_loan)
 
-    async def set_loan_as_returned(self, loan_id: int) -> LoanRelationDTO:
+    async def set_loan_as_returned(self, loan_id: int) -> LoanDTO:
         await self.loan_repository.update(data={ "return_date": datetime.now() }, id=loan_id)
         loan = await self.loan_repository.find(id=loan_id)
 
-        copy = await self.book_service.change_copy_status(
+
+        await self.book_service.change_copy_status(
             new_status=BookCopyStatus.AVAILABLE,
             serial_num=loan.book_copy.serial_num
         )
-        loan.copy = copy
 
-        return LoanRelationDTO.model_validate(loan)
+        return LoanDTO.model_validate(loan)
 
     async def get_overdue_loans(self, pg: Pagination) -> MultiDTO[LoanRelationDTO]:
         loans, total = await self.loan_repository.find_all(

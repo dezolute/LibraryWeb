@@ -3,13 +3,13 @@ from passlib.context import CryptContext
 from starlette import status
 
 from app.schemas.utils import Token
-from app.repositories import RepositoryType
+from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.utils.auth.oauth2 import OAuth2Utility
 
 
 class AuthService:
-    def __init__(self, reader_repository: RepositoryType): # type: ignore
-        self.reader_repository: RepositoryType = reader_repository # type: ignore
+    def __init__(self, reader_repository: SqlAlchemyRepository):
+        self.reader_repository: SqlAlchemyRepository = reader_repository
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def login(self, form_data) -> Token:

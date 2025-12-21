@@ -42,7 +42,7 @@ async def make_requests(
         book_id: int,
         current_reader: CurrentReaderType,
         request_service: RequestServiceType,
-) -> RequestDTO:
+) -> RequestSemiRelationDTO:
     requests = await request_service.create_request(
         reader_id=current_reader.id,
         book_id=book_id,
