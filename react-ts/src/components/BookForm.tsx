@@ -112,7 +112,7 @@ const BookForm = () => {
       const formData = new FormData();
       formData.append('cover', coverFile);
 
-  const resp = await fetch(`${API_BASE}/books/${targetId}`, {
+      const resp = await fetch(`${API_BASE}/books/${targetId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
