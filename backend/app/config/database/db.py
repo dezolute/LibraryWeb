@@ -7,7 +7,17 @@ from app.config.database.db_config import db_config
 
 class Database:
     def __init__(self, url: str, echo: bool = False):
-        self.engine = create_async_engine(url=url, echo=echo)
+        if db_config.SSL:
+            self.engine = create_async_engine(
+                url=url,
+                echo=echo,
+                connect_args={"ssl": True}
+            )
+        else:
+            self.engine = create_async_engine(
+                url=url,
+                echo=echo
+            )
 
         self.session_factory = async_sessionmaker(
             bind=self.engine, expire_on_commit=False, autoflush=False, autocommit=False

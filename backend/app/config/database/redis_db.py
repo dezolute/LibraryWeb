@@ -21,14 +21,23 @@ class RedisConnection:
         self.redis = None
 
     async def __aenter__(self):
-        self.redis = Redis(
-            host=self.host,
-            port=self.port,
-            username=self.user,
-            password=self.password,
-            db=self.db,
-            decode_responses=True
-        )
+        if redis_config.REDIS_USER_USAGE:
+            self.redis = Redis(
+                host=self.host,
+                port=self.port,
+                username=self.user,
+                password=self.password,
+                db=self.db,
+                decode_responses=True
+            )
+        else:
+            self.redis = Redis(
+                host=self.host,
+                port=self.port,
+                db=self.db,
+                decode_responses=True
+            )
+            
         return self.redis
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
