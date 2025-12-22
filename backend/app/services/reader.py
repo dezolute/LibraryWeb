@@ -52,15 +52,16 @@ class ReaderService:
             )
 
         token = secrets.token_urlsafe(15)
-        asyncio.create_task(send_verify_email(
+        
+        await send_verify_email(
             to=str(db_reader.email),
             token=token,
             host="127.0.0.1"
-        ))
-        asyncio.create_task(self.redis.set_verify_tokens(
+        )
+        await self.redis.set_verify_tokens(
             token_id=token,
             email=db_reader.email
-        ))
+        )
 
         return ReaderSemiRelationDTO.model_validate(db_reader)
 

@@ -76,7 +76,7 @@ class RequestService:
             )
 
         if new_status == RequestStatus.PENDING:
-            asyncio.create_task(self.send_notify(request.id))
+            await self.send_notify(request_id)
 
         return RequestDTO.model_validate(request)
 
@@ -144,10 +144,10 @@ class RequestService:
                 detail=f"Request not found"
             )
 
-        asyncio.create_task(send_notification_email(
+        await send_notification_email(
             to=request.reader.email,
             book_title=request.book.title,
-        ))
+        )
 
         return RequestDTO.model_validate(request)
 
