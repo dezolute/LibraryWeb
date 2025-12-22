@@ -6,8 +6,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from app.config import email_config
 
-HOST = "127.0.0.1:8000"
-
 env = Environment(loader=FileSystemLoader("app/modules/email/templates"))
 
 def send_email(to, subject, html):
