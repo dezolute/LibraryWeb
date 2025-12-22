@@ -1,3 +1,4 @@
+import asyncio
 import os.path
 from typing import List, Optional
 
@@ -23,6 +24,7 @@ from app.schemas.utils.filters import BookFilter
 from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.models.book import BookORM
 from app.models.request import RequestORM
+from backend.app.modules.email.email_sender import send_notification_email
 
 
 class BookService:
@@ -161,7 +163,7 @@ class BookService:
             )
         
         if new_status == BookCopyStatus.AVAILABLE:
-            requests = (await self.request_repository.find_all(
+            request = (await self.request_repository.find_all(
                 pg=Pagination(
                     limit=1,
                     offset=0,
@@ -171,12 +173,17 @@ class BookService:
                 book_id=book_copy.book_id
             ))[0]
             
-            if len(requests) != 0:
+            if len(request) != 0:
                 await self.request_repository.update(
                     data={ "status": RequestStatus.PENDING },
-                    id=requests[0].id
+                    id=request[0].id
                 )
                 
+                _ = await asyncio.create_task(send_notification_email(
+                    to=request.reader.email, # type: ignore
+                    book_title=request.book.title, # type: ignore
+                ))
+
                 db_copy = await self.change_copy_status(
                     new_status=BookCopyStatus.RESERVED,
                     serial_num=serial_num
