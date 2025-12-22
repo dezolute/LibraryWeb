@@ -16,6 +16,7 @@ from app.schemas import (
     MultiDTO,
     BookCopyCreateDTO,
     BookCopyFullDTO,
+    BookClearDTO
 )
 from app.schemas.relations import BookRelationDTO
 from app.schemas.utils import BookFilter
@@ -77,7 +78,7 @@ async def get_book(
 @book_router.put("/{book_id}")
 async def update_book(
         book_id: int,
-        new_book: BookCreateDTO,
+        new_book: BookClearDTO,
         book_service: BookServiceType,
         current_reader: CurrentReaderType,
 ) -> BookDTO:

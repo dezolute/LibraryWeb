@@ -84,6 +84,7 @@ class ReaderService:
 
     async def get_orm_data(self, **kwargs):
         reader = await self.reader_repository.find(**kwargs)
+
         if reader is None:
             raise HTTPException(status_code=404)
 

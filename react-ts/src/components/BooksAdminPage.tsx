@@ -167,7 +167,7 @@ export default function BooksAdminPage() {
       try {
         if (!ensureAuth()) return;
         const fd = new FormData();
-        fd.append("file", file as Blob);
+        fd.append("cover", file as Blob);
 
         const resp = await fetch(`${API_BASE}/books/${bookId}`, {
           method: "PATCH",
@@ -261,9 +261,6 @@ export default function BooksAdminPage() {
           </Form.Item>
           <Form.Item name="year_publication" label="Год публикации" rules={[{ required: true }]}>
             <InputNumber min={0} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item name="cover_url" label="Cover URL (если используете url)">
-            <Input />
           </Form.Item>
         </Form>
       </Modal>

@@ -111,8 +111,8 @@ class RequestService:
     async def reader_remove_request(self, request_id: int, reader_id: int) -> RequestDTO:
         request = await self.request_repository.delete(
             id=request_id,
+            conditions=[RequestORM.status != RequestStatus.FULFILLED],
             reader_id=reader_id,
-            status=RequestStatus.QUEUED
         )
 
         if request is None:
@@ -120,21 +120,24 @@ class RequestService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Request not found"
             )
+        
+        book = await self.book_service.get_single(get_orm=True, id=request.book_id)
+        for el in book.copies:
+            if el.status == BookCopyStatus.RESERVED:
+                await self.book_service.change_copy_status(
+                    new_status=BookCopyStatus.AVAILABLE,
+                    serial_num=el.serial_num
+                )
+                break
 
         return RequestDTO.model_validate(request)
 
     async def send_notify(self, id: int) -> RequestDTO:
-        request_list, _ = await self.request_repository.find_all(
-            pg=Pagination(
-                limit=1,
-                offset=0,
-                order_by="id",
-            ),
-            book_id=id,
-            status=RequestStatus.QUEUED
+        request = await self.request_repository.find(
+            id=id,
+            status=RequestStatus.PENDING
         )
 
-        request = next(iter(request_list), None)
         if request is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

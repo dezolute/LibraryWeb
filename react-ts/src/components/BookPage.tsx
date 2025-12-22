@@ -33,8 +33,7 @@ const BookPage = () => {
   const [requestLoading, setRequestLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchBook = async () => {
+  const fetchBook = async (id: string | undefined) => {
       if (!id) return;
       setLoading(true);
       setError(null);
@@ -56,7 +55,9 @@ const BookPage = () => {
         setLoading(false);
       }
     };
-    fetchBook();
+
+  useEffect(() => {
+    fetchBook(id);
   }, [id]);
 
   const handleOpenModal = () => {
@@ -114,6 +115,7 @@ const BookPage = () => {
         throw new Error(errorMsg);
       }
 
+      fetchBook(id)
       message.success('Запрос на книгу успешно создан');
       setIsModalOpen(false);
     } catch (e) {
@@ -187,8 +189,8 @@ const BookPage = () => {
               coverSrc ? (
                 <img 
                   alt={book.title} 
-                  src={coverSrc} 
-                  style={{ width: '100%', height: 'auto', maxHeight: 420, objectFit: 'contain', backgroundColor: '#fff' }} 
+                  src={coverSrc}
+                  className='w-full h-auto, max-[420px] object-cover bg-white' 
                 />
               ) : undefined
             }

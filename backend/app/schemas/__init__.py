@@ -2,6 +2,7 @@ from app.schemas.book import (
     BookDTO as BookDTO,
     BookCreateDTO as BookCreateDTO,
     BookCopyCreateDTO as BookCopyCreateDTO,
+    BookClearDTO as BookClearDTO
 )
 from app.schemas.book_copy import (
     BookCopyDTO as BookCopyDTO,

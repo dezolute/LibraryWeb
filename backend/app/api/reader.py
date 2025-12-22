@@ -7,6 +7,7 @@ from starlette.responses import RedirectResponse
 from app.api.types import ReaderServiceType, CurrentReaderType, RequestServiceType
 from app.schemas import ReaderCreateDTO, RequestDTO
 from app.schemas.relations import ReaderRelationDTO, RequestSemiRelationDTO, ReaderSemiRelationDTO
+from app.models.types import RequestStatus
 
 reader_router = APIRouter(prefix="/readers", tags=["Readers"])
 
@@ -24,6 +25,13 @@ async def create_reader(
 async def get_current_reader(
         current_reader: CurrentReaderType,
 ) -> ReaderRelationDTO:
+    new_requests = (
+        [el for el in current_reader.requests if el.status == RequestStatus.PENDING]
+        + [el for el in current_reader.requests if el.status == RequestStatus.QUEUED]
+        + [el for el in current_reader.requests if el.status == RequestStatus.FULFILLED]
+    )
+    current_reader.requests = new_requests
+    
     return current_reader
 
 

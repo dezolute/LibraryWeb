@@ -25,7 +25,7 @@ def send_email(to, subject, html):
 
 async def send_notification_email(to: str, book_title: str) -> bool:
     try:
-        template = env.get_template("email_notification.html")
+        template = env.get_template("book_notification.html")
         html = template.render(book_title=book_title)
         subject = "Книга в наличии"
 
