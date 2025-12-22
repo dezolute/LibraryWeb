@@ -12,19 +12,32 @@ class EnumRedisDB(int, Enum):
 
 
 class RedisConnection:
-    def __init__(self, host, port, db):
+    def __init__(self, host, port, user, password, db):
         self.host = host
         self.port = port
+        self.user = user
+        self.password = password
         self.db = db
         self.redis = None
 
     async def __aenter__(self):
-        self.redis = Redis(
-            host=self.host,
-            port=self.port,
-            db=self.db,
-            decode_responses=True
-        )
+        if redis_config.REDIS_USER_USAGE:
+            self.redis = Redis(
+                host=self.host,
+                port=self.port,
+                username=self.user,
+                password=self.password,
+                db=self.db,
+                decode_responses=True
+            )
+        else:
+            self.redis = Redis(
+                host=self.host,
+                port=self.port,
+                db=self.db,
+                decode_responses=True
+            )
+            
         return self.redis
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -33,15 +46,19 @@ class RedisConnection:
 
 
 class RedisDB:
-    def __init__(self, host, port):
+    def __init__(self, host, port, user, password):
         self.host = host
         self.port = port
+        self.user = user
+        self.password = password
 
     @asynccontextmanager
     async def get_connect(self, db: EnumRedisDB = EnumRedisDB.VERIFY):
         async with RedisConnection(
                 host=self.host,
                 port=self.port,
+                user=self.user,
+                password=self.password,
                 db=db.value
         ) as conn:
             try:
@@ -54,4 +71,6 @@ class RedisDB:
 redis_db = RedisDB(
     host=redis_config.REDIS_HOST,
     port=redis_config.REDIS_PORT,
+    user=redis_config.REDIS_USER,
+    password=redis_config.REDIS_PASSWORD
 )
