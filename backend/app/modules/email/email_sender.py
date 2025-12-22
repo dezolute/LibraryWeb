@@ -35,9 +35,9 @@ async def send_notification_email(to: str, book_title: str) -> bool:
         return False
 
 
-async def send_verify_email(to: str, token: str, host: str) -> bool:
+async def send_verify_email(to: str, token: str) -> bool:
     try:
-        verify_url = f"http://{host}/api/readers/verify?token={token}"
+        verify_url = f"http://{email_config.SMTP_CALLBACK}/api/readers/verify?token={token}"
         template = env.get_template("verify_email.html")
         html = template.render(verify_url=verify_url)
         subject = "Подтвердите почту"
