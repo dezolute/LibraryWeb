@@ -24,7 +24,7 @@ from app.schemas.utils.filters import BookFilter
 from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.models.book import BookORM
 from app.models.request import RequestORM
-from backend.app.modules.email.email_sender import send_notification_email
+from app.modules.email.email_sender import send_notification_email
 
 
 class BookService:
