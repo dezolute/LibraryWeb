@@ -132,7 +132,7 @@ class RequestService:
 
         return RequestDTO.model_validate(request)
 
-    async def send_notify(self, id: int) -> RequestDTO:
+    async def send_notify(self, id: int) -> bool:
         request = await self.request_repository.find(
             id=id,
             status=RequestStatus.PENDING
@@ -144,12 +144,12 @@ class RequestService:
                 detail=f"Request not found"
             )
 
-        await send_notification_email(
+        result = await asyncio.create_task(send_notification_email(
             to=request.reader.email,
             book_title=request.book.title,
-        )
+        ))
 
-        return RequestDTO.model_validate(request)
+        return result
 
     async def give_book(self, request_id: int) -> RequestDTO:
         request = await self.update_status(
