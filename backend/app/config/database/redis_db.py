@@ -7,8 +7,8 @@ from app.config.database.redis_config import redis_config
 
 
 class EnumRedisDB(int, Enum):
-    CACHE = 0,
-    VERIFY = 1
+    VERIFY = 0
+    CACHE = 0
 
 
 class RedisConnection:
@@ -37,7 +37,7 @@ class RedisConnection:
                 db=self.db,
                 decode_responses=True
             )
-            
+
         return self.redis
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
