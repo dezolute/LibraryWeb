@@ -179,15 +179,16 @@ class BookService:
                     id=request[0].id
                 )
                 
+                db_copy = await self.change_copy_status(
+                    new_status=BookCopyStatus.RESERVED,
+                    serial_num=serial_num
+                )
+                
                 _ = await asyncio.create_task(send_notification_email(
                     to=request[0].reader.email,
                     book_title=request[0].book.title,
                 ))
 
-                db_copy = await self.change_copy_status(
-                    new_status=BookCopyStatus.RESERVED,
-                    serial_num=serial_num
-                )
                 return BookCopyDTO.model_validate(db_copy)
 
         return BookCopyDTO.model_validate(book_copy)
