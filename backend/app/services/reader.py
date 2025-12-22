@@ -53,7 +53,7 @@ class ReaderService:
 
         token = secrets.token_urlsafe(15)
 
-        await asyncio.create_task(
+        _ = await asyncio.create_task(
             send_verify_email(
                 str(db_reader.email),
                 token,
