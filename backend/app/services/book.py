@@ -180,8 +180,8 @@ class BookService:
                 )
                 
                 _ = await asyncio.create_task(send_notification_email(
-                    to=request.reader.email, # type: ignore
-                    book_title=request.book.title, # type: ignore
+                    to=request[0].reader.email,
+                    book_title=request[0].book.title,
                 ))
 
                 db_copy = await self.change_copy_status(
