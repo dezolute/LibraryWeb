@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Table, Button, message, Spin, Alert, Tooltip, Input, Select, DatePicker } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ClockCircleOutlined, 
-  CheckCircleOutlined, 
+import {
+  ClockCircleOutlined,
+  CheckCircleOutlined,
   PauseCircleOutlined
 } from '@ant-design/icons';
-import type { Dayjs } from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 import CONFIG from './consts/config';
 
 const { RangePicker } = DatePicker;
-
 const API_BASE = CONFIG.API_URL;
 
 interface Book {
@@ -35,7 +34,7 @@ interface Request {
   id: number;
   reader_id: number;
   book_id: number;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | string; // у тебя в UI ещё FULFILLED/QUEUED
   created_at: string;
   book?: Book;
   reader?: Reader;
@@ -49,12 +48,20 @@ const RequestsManager = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // фильтры (только UI)
   const [book, setBook] = useState('');
   const [reader, setReader] = useState('');
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+
+  // клиентская пагинация
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const navigate = useNavigate();
 
+  // 1) грузим данные без фильтров с сервера
   const fetchRequests = async () => {
     setLoading(true);
     setError(null);
@@ -65,18 +72,7 @@ const RequestsManager = () => {
         return;
       }
 
-      const params = new URLSearchParams();
-      if (book) params.set('book', book);
-      if (reader) params.set('reader', reader);
-      if (status) params.set('status', status);
-      if (dateRange?.[0]) params.set('at', dateRange[0].toISOString());
-      if (dateRange?.[1]) params.set('to', dateRange[1].toISOString());
-
-      const url = params.toString() 
-        ? `${API_BASE}/requests?${params.toString()}`
-        : `${API_BASE}/requests`;
-
-      const resp = await fetch(url, {
+      const resp = await fetch(`${API_BASE}/requests`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -89,38 +85,72 @@ const RequestsManager = () => {
 
       if (!resp.ok) throw new Error('Не удалось загрузить запросы');
 
-      const contentType = resp.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`Неверный формат ответа: ${contentType}`);
-      }
-
+      const contentType = resp.headers.get('content-type') || '';
       const text = await resp.text();
-      console.log('Response text:', text);
-      
-      try {
-        const data = JSON.parse(text);
-        console.log('Parsed data:', data);
-        
-        // Проверяем, что данные - это массив
-        if (!Array.isArray(data)) {
-          if (data.items && Array.isArray(data.items)) {
-            setRequests(data.items);
-          } else {
-            throw new Error('Данные не являются массивом');
-          }
-        } else {
-          setRequests(data);
-        }
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        throw new Error(`Ошибка парсинга JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-      }
+
+      let data: any;
+      if (contentType.includes('application/json')) data = JSON.parse(text);
+      else data = JSON.parse(text); // оставил твою логику "на всякий случай"
+
+      if (Array.isArray(data)) setRequests(data);
+      else if (data.items && Array.isArray(data.items)) setRequests(data.items);
+      else throw new Error('Данные не являются массивом');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Неизвестная ошибка');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 2) фильтрация на фронте
+  const filteredRequests = useMemo(() => {
+    const bookQ = book.trim().toLowerCase();
+    const readerQ = reader.trim().toLowerCase();
+
+    const from = dateRange?.[0] ? dateRange[0].startOf('day') : null;
+    const to = dateRange?.[1] ? dateRange[1].endOf('day') : null;
+
+    return requests.filter((r) => {
+      const title = (r.book?.title || r.book_title || '').toLowerCase();
+
+      const readerName = (r.reader?.profile?.full_name || r.reader_name || '').toLowerCase();
+      const readerEmail = (r.reader?.email || r.reader_email || '').toLowerCase();
+
+      if (bookQ && !title.includes(bookQ)) return false;
+
+      if (readerQ) {
+        const ok = readerName.includes(readerQ) || readerEmail.includes(readerQ);
+        if (!ok) return false;
+      }
+
+      if (status && r.status !== status) return false;
+
+      if (from || to) {
+        const d = dayjs(r.created_at);
+        if (!d.isValid()) return false;
+        if (from && d.isBefore(from)) return false;
+        if (to && d.isAfter(to)) return false;
+      }
+
+      return true;
+    });
+  }, [requests, book, reader, status, dateRange]);
+
+  // сброс страницы при изменении фильтров
+  useEffect(() => {
+    setPage(1);
+  }, [book, reader, status, dateRange]);
+
+  // 3) клиентская пагинация (режем filteredRequests)
+  const pagedRequests = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredRequests.slice(start, start + pageSize);
+  }, [filteredRequests, page, pageSize]);
 
   const handleAction = async (requestId: number) => {
     try {
@@ -138,20 +168,14 @@ const RequestsManager = () => {
       if (!resp.ok) throw new Error('Не удалось обработать запрос');
 
       message.success('Выдача книги зафиксированна');
-      fetchRequests();
+      fetchRequests(); // чтобы статусы обновились
     } catch (e) {
       message.error(e instanceof Error ? e.message : 'Неизвестная ошибка');
     }
   };
 
-  const handleSearch = () => {
-    fetchRequests();
-  };
-
-  useEffect(() => {
-    fetchRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // "Фильтровать" теперь не ходит в API — только сбрасывает страницу (можно вообще удалить кнопку)
+  const handleSearch = () => setPage(1);
 
   if (loading) return <div className="flex justify-center py-20"><Spin size="large" /></div>;
   if (error) return <Alert type="error" message="Ошибка" description={error} />;
@@ -159,7 +183,7 @@ const RequestsManager = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-semibold mb-6">Управление заявками</h1>
-      
+
       <div className="flex flex-wrap gap-3 mb-4">
         <Input
           placeholder="Книга"
@@ -187,17 +211,25 @@ const RequestsManager = () => {
             { label: 'В очереди', value: 'QUEUED' },
           ]}
         />
-        <RangePicker 
-          value={dateRange as any} 
+        <RangePicker
+          value={dateRange as any}
           onChange={(v) => setDateRange(v as any)}
           placeholder={['Дата от', 'Дата до']}
         />
         <Button onClick={handleSearch} type="default">Фильтровать</Button>
+        <Button onClick={fetchRequests} type="default">Обновить</Button>
       </div>
 
       <Table
-        dataSource={requests}
+        dataSource={pagedRequests}
         rowKey="id"
+        pagination={{
+          current: page,
+          pageSize,
+          total: filteredRequests.length,
+          showSizeChanger: true,
+          onChange: (p, ps) => { setPage(p); setPageSize(ps); },
+        }}
         columns={[
           {
             title: 'Читатель',
@@ -216,10 +248,7 @@ const RequestsManager = () => {
           {
             title: 'Книга',
             key: 'book',
-            render: (_: unknown, record: Request) => {
-              const title = record.book?.title || record.book_title || '—';
-              return title;
-            },
+            render: (_: unknown, record: Request) => record.book?.title || record.book_title || '—',
           },
           {
             title: 'Статус',
@@ -242,14 +271,11 @@ const RequestsManager = () => {
                   color: '#1160AB',
                   label: 'В очереди',
                 },
-              };
+              } as const;
 
-              const statusConfig = config[status as keyof typeof config];
-              
-              if (!statusConfig) {
-                return <span>{status}</span>;
-              }
-              
+              const statusConfig = (config as any)[status];
+              if (!statusConfig) return <span>{status}</span>;
+
               return (
                 <Tooltip title={statusConfig.label}>
                   <span style={{ color: statusConfig.color }}>
@@ -270,11 +296,7 @@ const RequestsManager = () => {
             key: 'actions',
             render: (_: unknown, record: Request) => (
               record.status === 'PENDING' && (
-                <Button
-                  type="primary"
-                  size="small"
-                  onClick={() => handleAction(record.id)}
-                >
+                <Button type="primary" size="small" onClick={() => handleAction(record.id)}>
                   Выдать кнгиу
                 </Button>
               )

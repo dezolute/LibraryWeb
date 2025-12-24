@@ -39,6 +39,7 @@ type Loan = {
   return_date?: string | null; // ISO | null
   book_copy?: BookCopy;
   reader?: Reader;
+
   // Для обратной совместимости
   serial_num?: string;
   book_title?: string;
@@ -54,43 +55,39 @@ const LoansPage = () => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // теперь это только UI-пагинация
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+
   const [book, setBook] = useState('');
   const [reader, setReader] = useState('');
   const [dateRange, setDateRange] = useState<Dayjs[] | null>(null);
+
   const navigate = useNavigate();
   const token = localStorage.getItem('access_token');
 
-  const fetchLoans = async (currentPage = 1, currentPageSize = 10) => {
+  // 1) Загружаем ВСЕ займы (или достаточно большой лимит)
+  const fetchLoans = async () => {
     setLoading(true);
     setError(null);
     try {
-      const offset = (currentPage - 1) * currentPageSize;
       const params = new URLSearchParams();
-      params.set('limit', String(currentPageSize));
-      params.set('offset', String(offset));
-      if (book) params.set('book', book);
-      if (reader) params.set('reader', reader)
-      if (dateRange?.[0]) params.set('at', dateRange[0].toISOString());
-      if (dateRange?.[1]) params.set('to', dateRange[1].toISOString());
+      // Если API требует limit/offset, можно временно поставить большой limit:
+      params.set('limit', '10000');
+      params.set('offset', '0');
 
       const resp = await fetch(`${API_BASE}/loans?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) throw new Error('Не удалось получить список займов');
+
       const contentType = resp.headers.get('content-type') || '';
       const text = await resp.text();
-      let data: unknown;
-      if (contentType.includes('application/json')) {
-        try { data = JSON.parse(text); } catch { data = text; }
-      } else {
-        try { data = JSON.parse(text); } catch { data = text; }
-      }
-      const parsed = data as { items?: Loan[]; total?: number };
+      const data = contentType.includes('application/json') ? JSON.parse(text) : JSON.parse(text);
+
+      const parsed = data as { items?: Loan[] };
       setLoans(parsed.items || []);
-      setTotal(typeof parsed.total === 'number' ? parsed.total : (parsed.items || []).length);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error');
     } finally {
@@ -98,10 +95,62 @@ const LoansPage = () => {
     }
   };
 
+  // загружаем один раз
   useEffect(() => {
-    fetchLoans(page, pageSize);
+    fetchLoans();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize]);
+  }, []);
+
+  // 2) Фильтрация на фронте (useMemo, чтобы не пересчитывать зря) [web:15]
+  const filteredLoans = useMemo(() => {
+    const bookQ = book.trim().toLowerCase();
+    const readerQ = reader.trim().toLowerCase();
+
+    const from = dateRange?.[0]?.startOf('day') ?? null;
+    const to = dateRange?.[1]?.endOf('day') ?? null;
+
+    return loans.filter((l) => {
+      const title = (l.book_copy?.book?.title || l.book_title || '').toLowerCase();
+      const serial = (l.book_copy?.serial_num || l.serial_num || '').toLowerCase();
+
+      const readerName = (l.reader?.profile?.full_name || l.reader_name || '').toLowerCase();
+      const readerEmail = (l.reader?.email || '').toLowerCase();
+
+      // по книге ищем и по названию, и по серийному (если нужно)
+      if (bookQ) {
+        const okBook = title.includes(bookQ) || serial.includes(bookQ);
+        if (!okBook) return false;
+      }
+
+      // по читателю ищем по имени и email
+      if (readerQ) {
+        const okReader = readerName.includes(readerQ) || readerEmail.includes(readerQ);
+        if (!okReader) return false;
+      }
+
+      // фильтр по датам: обычно логично фильтровать по issue_date (выдан)
+      const issueIso = l.issue_date || l.issued_at;
+      if (from || to) {
+        if (!issueIso) return false;
+        const d = dayjs(issueIso);
+        if (from && d.isBefore(from)) return false;
+        if (to && d.isAfter(to)) return false;
+      }
+
+      return true;
+    });
+  }, [loans, book, reader, dateRange]);
+
+  // 3) Клиентская пагинация: режем отфильтрованный массив
+  const pagedLoans = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredLoans.slice(start, start + pageSize);
+  }, [filteredLoans, page, pageSize]);
+
+  // если фильтры изменились — сброс страницы (чтобы не попасть на пустую) [web:10]
+  useEffect(() => {
+    setPage(1);
+  }, [book, reader, dateRange]);
 
   const handleAction = async (loanId: number) => {
     try {
@@ -119,6 +168,7 @@ const LoansPage = () => {
       if (!resp.ok) throw new Error('Не удалось обработать запрос');
 
       message.success('Книга возвращенна');
+      // обновляем список, чтобы статусы/return_date подтянулись
       fetchLoans();
     } catch (e) {
       message.error(e instanceof Error ? e.message : 'Неизвестная ошибка');
@@ -147,10 +197,10 @@ const LoansPage = () => {
       ellipsis: true,
       render: (_: unknown, record: Loan) => {
         const title = record.book_copy?.book?.title || record.book_title || '—';
-        const serial_num = record.book_copy?.serial_num || record.book_title || '—';
+        const serialNum = record.book_copy?.serial_num || record.serial_num || '—'; // <- фикс: было book_title
         return (
           <div>
-            <div>{serial_num}</div>
+            <div>{serialNum}</div>
             <div className="text-sm text-gray-500">{title}</div>
           </div>
         );
@@ -188,11 +238,7 @@ const LoansPage = () => {
       key: 'actions',
       render: (_: unknown, record: Loan) => (
         record.return_date === null && (
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => handleAction(record.id)}
-          >
+          <Button type="primary" size="small" onClick={() => handleAction(record.id)}>
             Забрать кнгиу
           </Button>
         )
@@ -200,17 +246,13 @@ const LoansPage = () => {
     },
   ], []);
 
-  const handleSearch = () => {
-    setPage(1);
-    fetchLoans(1, pageSize);
-  };
+  // кнопка "Фильтровать" больше не обязана делать fetch — можно оставить просто сброс page
+  const handleSearch = () => setPage(1);
 
   const downloadOverdueReport = async () => {
     try {
       const resp = await fetch(`${API_BASE}/loans/overdue/report`, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) {
         const text = await resp.text();
@@ -257,25 +299,29 @@ const LoansPage = () => {
         />
         <RangePicker value={dateRange as any} onChange={(v) => setDateRange(v as any)} />
         <Button onClick={handleSearch} type="default">Фильтровать</Button>
+        <Button onClick={fetchLoans} type="default">Обновить</Button>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-16"><Spin /></div>
       ) : error ? (
         <Alert type="error" message="Ошибка" description={error} />
-      ) : loans.length === 0 ? (
+      ) : filteredLoans.length === 0 ? (
         <div className="py-16"><Empty description="Займов не найдено" /></div>
       ) : (
         <Table
           rowKey="id"
           columns={columns}
-          dataSource={loans}
+          dataSource={pagedLoans}
           pagination={{
             current: page,
             pageSize,
-            total,
+            total: filteredLoans.length,
             showSizeChanger: true,
-            onChange: (p, ps) => { setPage(p); setPageSize(ps); },
+            onChange: (p, ps) => {
+              setPage(p);
+              setPageSize(ps);
+            },
           }}
         />
       )}
@@ -284,5 +330,3 @@ const LoansPage = () => {
 };
 
 export default LoansPage;
-
-
