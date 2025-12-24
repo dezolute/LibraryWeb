@@ -217,7 +217,6 @@ const RequestsManager = () => {
           placeholder={['Дата от', 'Дата до']}
         />
         <Button onClick={handleSearch} type="default">Фильтровать</Button>
-        <Button onClick={fetchRequests} type="default">Обновить</Button>
       </div>
 
       <Table
