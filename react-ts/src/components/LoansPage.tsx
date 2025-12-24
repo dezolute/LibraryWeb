@@ -299,7 +299,6 @@ const LoansPage = () => {
         />
         <RangePicker value={dateRange as any} onChange={(v) => setDateRange(v as any)} />
         <Button onClick={handleSearch} type="default">Фильтровать</Button>
-        <Button onClick={fetchLoans} type="default">Обновить</Button>
       </div>
 
       {loading ? (
