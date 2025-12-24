@@ -29,7 +29,6 @@ type Book = {
 };
 
 type BooksResponse = { items: Book[]; total: number };
-
 type BookFormValues = Omit<Book, "id">;
 
 function getToken() {
@@ -42,7 +41,6 @@ const authHeaders = (): Record<string, string> => {
   if (token) h.Authorization = `Bearer ${token}`;
   return h;
 };
-
 
 async function parseOrText(resp: Response) {
   const text = await resp.text();
@@ -65,8 +63,16 @@ export default function BooksAdminPage() {
   const navigate = useNavigate();
 
   const [rows, setRows] = useState<Book[]>([]);
-  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false);
+
+  // Фильтрация (front-end)
+  const [q, setQ] = useState("");
+  const [yearFrom, setYearFrom] = useState<number | null>(null);
+  const [yearTo, setYearTo] = useState<number | null>(null);
+
+  // Клиентская пагинация (чтобы фильтрация работала по всем данным)
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -86,9 +92,9 @@ export default function BooksAdminPage() {
     if (!ensureAuth()) return;
     setLoading(true);
     try {
+      // ВАЖНО: фильтрация будет на фронте => грузим полный список (как отдаёт API)
       const data = await api<BooksResponse>(`${API_BASE}/books`, { headers: authHeaders() });
-      setRows(data.items);
-      setTotal(data.total)
+      setRows(data.items || []);
     } catch (e) {
       if (e instanceof Error && e.message === "UNAUTHORIZED") {
         localStorage.removeItem("access_token");
@@ -160,7 +166,6 @@ export default function BooksAdminPage() {
   };
 
   // Обложка: PATCH /books/{book_id} (Set Book Cover)
-  // ВАЖНО: тут предполагается multipart/form-data с полем "file". Если у вас другое поле/формат — скажите, подстрою.
   const coverUploadProps = (bookId: number): UploadProps => ({
     showUploadList: false,
     customRequest: async ({ file, onSuccess, onError }) => {
@@ -189,6 +194,43 @@ export default function BooksAdminPage() {
       }
     },
   });
+
+  // ---- ФИЛЬТРАЦИЯ НА ФРОНТЕ ----
+  const filteredRows = useMemo(() => {
+    const query = q.trim().toLowerCase();
+
+    const from = typeof yearFrom === "number" ? yearFrom : null;
+    const to = typeof yearTo === "number" ? yearTo : null;
+
+    return rows.filter((b) => {
+      const haystack = [
+        b.title,
+        b.author,
+        b.publisher,
+        String(b.year_publication),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (query && !haystack.includes(query)) return false;
+
+      if (from !== null && b.year_publication < from) return false;
+      if (to !== null && b.year_publication > to) return false;
+
+      return true;
+    });
+  }, [rows, q, yearFrom, yearTo]);
+
+  // Сброс страницы при изменении фильтров
+  useEffect(() => {
+    setPage(1);
+  }, [q, yearFrom, yearTo]);
+
+  const pagedRows = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, page, pageSize]);
 
   const columns = useMemo(
     () => [
@@ -229,14 +271,64 @@ export default function BooksAdminPage() {
     <div className="max-w-6xl mx-auto px-4">
       <Card
         title="Управление книгами"
-        extra={<Button type="primary" onClick={() => navigate("/employee/books/add")}>Добавить книгу</Button>}
+        extra={
+          <Space wrap>
+            <Button onClick={load}>Обновить</Button>
+            <Button type="primary" onClick={() => navigate("/employee/books/add")}>
+              Добавить книгу
+            </Button>
+          </Space>
+        }
       >
+        {/* Панель фильтров */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          <Input
+            placeholder="Поиск: название / автор / издательство / год"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            allowClear
+            style={{ width: 360 }}
+          />
+          <InputNumber
+            placeholder="Год от"
+            value={yearFrom}
+            onChange={(v) => setYearFrom(typeof v === "number" ? v : null)}
+            style={{ width: 140 }}
+            min={0}
+          />
+          <InputNumber
+            placeholder="Год до"
+            value={yearTo}
+            onChange={(v) => setYearTo(typeof v === "number" ? v : null)}
+            style={{ width: 140 }}
+            min={0}
+          />
+          <Button
+            onClick={() => {
+              setQ("");
+              setYearFrom(null);
+              setYearTo(null);
+            }}
+          >
+            Сбросить
+          </Button>
+        </div>
+
         <Table<Book>
           rowKey="id"
           loading={loading}
-          dataSource={rows}
+          dataSource={pagedRows}
           columns={columns as any}
-          pagination={{ total, pageSize: 10 }}
+          pagination={{
+            current: page,
+            pageSize,
+            total: filteredRows.length,
+            showSizeChanger: true,
+            onChange: (p, ps) => {
+              setPage(p);
+              setPageSize(ps);
+            },
+          }}
         />
       </Card>
 
