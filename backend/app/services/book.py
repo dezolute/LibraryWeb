@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import os.path
 from typing import List, Optional
 
@@ -6,7 +7,7 @@ import aiohttp
 from fastapi import HTTPException, UploadFile
 from starlette import status
 
-from app.models import BookCopyORM
+from app.models import BookCopyORM, BookORM, RequestORM, HistoryORM
 from app.models.types import BookCopyStatus, RequestStatus
 from app.modules.s3 import upload_file_to_s3
 from app.schemas import (
@@ -22,8 +23,6 @@ from app.schemas.relations import BookRelationDTO
 from app.schemas.utils import Pagination
 from app.schemas.utils.filters import BookFilter
 from app.repositories.sqlalchemy import SqlAlchemyRepository
-from app.models.book import BookORM
-from app.models.request import RequestORM
 from app.modules.email.email_sender import send_notification_email
 
 
@@ -32,11 +31,13 @@ class BookService:
             self,
             book_repository: SqlAlchemyRepository[BookORM],
             book_copy_repository: SqlAlchemyRepository[BookCopyORM],
-            request_repository: SqlAlchemyRepository[RequestORM]
+            request_repository: SqlAlchemyRepository[RequestORM],
+            history_repository: SqlAlchemyRepository[HistoryORM]
     ):
         self.book_repository: SqlAlchemyRepository[BookORM] = book_repository
         self.book_copy_repository: SqlAlchemyRepository[BookCopyORM] = book_copy_repository
         self.request_repository: SqlAlchemyRepository[RequestORM] = request_repository
+        self.history_repository: SqlAlchemyRepository[HistoryORM] = history_repository
 
 
     async def get_single(self, get_orm: bool = False, **filters) -> BookRelationDTO | BookORM:
@@ -161,8 +162,26 @@ class BookService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Book copy not found",
             )
-        
+
+        if new_status == BookCopyStatus.BORROWED:
+            request = (await self.request_repository.find_all(
+                status=RequestStatus.FULFILLED,
+                book_id=book_copy.book_id,
+            ))[0][-1]
+
+            await self.history_repository.create({
+                    "copy_id": serial_num,
+                    "name": request.reader.profile.full_name.split(" ")[1],
+                })
+
         if new_status == BookCopyStatus.AVAILABLE:
+            history = (await self.history_repository.find_all(copy_id=serial_num))[0]
+            if len(history) != 0:
+                await self.history_repository.update(
+                    { "borrowed_to": datetime.now() },
+                    id=history[-1].id
+                )
+
             request = (await self.request_repository.find_all(
                 pg=Pagination(
                     limit=1,
@@ -172,18 +191,18 @@ class BookService:
                 status=RequestStatus.QUEUED,
                 book_id=book_copy.book_id
             ))[0]
-            
+
             if len(request) != 0:
                 await self.request_repository.update(
                     data={ "status": RequestStatus.PENDING },
                     id=request[0].id
                 )
-                
+
                 db_copy = await self.change_copy_status(
                     new_status=BookCopyStatus.RESERVED,
                     serial_num=serial_num
                 )
-                
+
                 _ = await asyncio.create_task(send_notification_email(
                     to=request[0].reader.email,
                     book_title=request[0].book.title,

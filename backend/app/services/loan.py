@@ -11,7 +11,7 @@ from app.services.book import BookService
 from app.services.reader import ReaderService
 from app.repositories.sqlalchemy import SqlAlchemyRepository
 from app.models import LoanORM
-from app.models.types import BookCopyStatus
+from app.models.types import BookAccessType, BookCopyStatus
 from app.schemas import MultiDTO
 from app.schemas.loan import LoanCreateDTO, LoanDTO
 from app.schemas.relations import LoanRelationDTO
@@ -49,6 +49,7 @@ class LoanService:
 
     async def create_loan(self, loan: LoanCreateDTO) -> LoanDTO:
         book = await self.book_service.get_single(id=loan.book_id)
+        global copy
         for copy in book.copies:
             if copy.status == BookCopyStatus.RESERVED:
                 await self.book_service.change_copy_status(
@@ -62,10 +63,19 @@ class LoanService:
                 detail="Avaliable copy not found"
             )
 
-        db_loan = await self.loan_repository.create({ 
-            "reader_id": loan.reader_id,
-            "copy_id": copy.serial_num
-        })
+        global db_loan
+
+        if copy.access_type == BookAccessType.READING_ROOM:
+            db_loan = await self.loan_repository.create({ 
+                "reader_id": loan.reader_id,
+                "copy_id": copy.serial_num,
+                "due_date": datetime.now()
+            })
+        else:
+            db_loan = await self.loan_repository.create({ 
+                "reader_id": loan.reader_id,
+                "copy_id": copy.serial_num
+            })
 
         return LoanDTO.model_validate(db_loan)
 

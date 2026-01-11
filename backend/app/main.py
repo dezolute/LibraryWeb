@@ -1,3 +1,4 @@
+from prometheus_fastapi_instrumentator import Instrumentator
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,6 +40,7 @@ admin = get_admin(app)
 async def root() -> RedirectResponse:
     return RedirectResponse(url="/api/docs")
 
+Instrumentator().instrument(app).expose(app)
 
 if __name__ == "__main__":
     uvicorn.run(
