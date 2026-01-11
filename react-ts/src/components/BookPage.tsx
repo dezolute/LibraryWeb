@@ -1,15 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Typography, Spin, Alert, Card, Descriptions, Button, message, Modal, Table, Tag, Space } from 'antd';
-import { BookOutlined, CopyOutlined } from '@ant-design/icons';
+import { BookOutlined, CopyOutlined, HistoryOutlined } from '@ant-design/icons';
 import CONFIG from './consts/config';
 
 const { Title, Paragraph } = Typography;
+
+type History = {
+  name: string;
+  borrowed_at?: string;
+  returned_at?: string;
+  reader_name?: string;
+};
 
 type BookCopy = {
   serial_num: string;
   status: string;
   access_type: string;
+  histories: History[];
 };
 
 type Book = {
@@ -34,27 +42,27 @@ const BookPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchBook = async (id: string | undefined) => {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
-      try {
-        const resp = await fetch(`${API_BASE}/books/${id}`);
-        if (!resp.ok) throw new Error('Не удалось получить данные книги');
-        const contentType = resp.headers.get('content-type') || '';
-        const text = await resp.text();
-        let data: unknown;
-        if (contentType.includes('application/json')) {
-          try { data = JSON.parse(text); } catch { data = text; }
-        } else {
-          try { data = JSON.parse(text); } catch { data = text; }
-        }
-        setBook(data as Book);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Unknown error');
-      } finally {
-        setLoading(false);
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch(`${API_BASE}/books/${id}`);
+      if (!resp.ok) throw new Error('Не удалось получить данные книги');
+      const contentType = resp.headers.get('content-type') || '';
+      const text = await resp.text();
+      let data: unknown;
+      if (contentType.includes('application/json')) {
+        try { data = JSON.parse(text); } catch { data = text; }
+      } else {
+        try { data = JSON.parse(text); } catch { data = text; }
       }
-    };
+      setBook(data as Book);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchBook(id);
@@ -115,7 +123,7 @@ const BookPage = () => {
         throw new Error(errorMsg);
       }
 
-      fetchBook(id)
+      fetchBook(id);
       message.success('Запрос на книгу успешно создан');
       setIsModalOpen(false);
     } catch (e) {
@@ -144,6 +152,28 @@ const BookPage = () => {
   const coverSrc = book.cover_url
     ? (book.cover_url.startsWith('http') ? book.cover_url : `${API_BASE}${book.cover_url}`)
     : undefined;
+
+  // Колонки для вложенной таблицы истории
+  const historyColumns = [
+    {
+      title: 'Читатель',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string | undefined) => name || '—',
+    },
+    {
+      title: 'Выдана',
+      dataIndex: 'borrowed_at',
+      key: 'borrowed_at',
+      render: (date: string | undefined) => date ? new Date(date).toLocaleDateString('ru-RU') : '—',
+    },
+    {
+      title: 'Возвращена',
+      dataIndex: 'borrowed_to',
+      key: 'borrowed_to',
+      render: (date: string | undefined) => date ? new Date(date).toLocaleDateString('ru-RU') : '—',
+    },
+  ];
 
   const copyColumns = [
     {
@@ -174,6 +204,17 @@ const BookPage = () => {
         <Tag>{access_type}</Tag>
       ),
     },
+    {
+      title: 'История',
+      dataIndex: 'histories',
+      key: 'histories',
+      render: (histories: History[]) => (
+        <Space>
+          <HistoryOutlined />
+          <span>{histories.length} записей</span>
+        </Space>
+      ),
+    },
   ];
 
   const availableCopies = book.copies.filter(copy => copy.status === 'AVAILABLE').length;
@@ -190,7 +231,7 @@ const BookPage = () => {
                 <img 
                   alt={book.title} 
                   src={coverSrc}
-                  className='w-full h-auto, max-[420px] object-cover bg-white' 
+                  className="w-full h-auto max-h-[420px] object-cover bg-white" 
                 />
               ) : undefined
             }
@@ -204,7 +245,6 @@ const BookPage = () => {
             <Descriptions.Item label="Автор">{book.author}</Descriptions.Item>
             <Descriptions.Item label="Издательство">{book.publisher}</Descriptions.Item>
             <Descriptions.Item label="Год публикации">{book.year_publication}</Descriptions.Item>
-            <Descriptions.Item label="ID">{book.id}</Descriptions.Item>
             <Descriptions.Item label="Экземпляров всего">
               <Tag color="blue">{book.copies.length}</Tag>
             </Descriptions.Item>
@@ -241,7 +281,28 @@ const BookPage = () => {
           rowKey="serial_num"
           pagination={false}
           size="middle"
-          scroll={{ x: 600 }}
+          scroll={{ x: 800 }}
+          expandable={{
+            expandedRowRender: (record: BookCopy) => (
+              <div style={{ margin: 0 }}>
+                <div className="mb-2 font-semibold">
+                  <HistoryOutlined /> История экземпляра {record.serial_num}:
+                </div>
+                {record.histories.length > 0 ? (
+                  <Table
+                    dataSource={record.histories}
+                    columns={historyColumns}
+                    pagination={false}
+                    size="small"
+                    rowKey={(_, index) => `history-${index}`}
+                  />
+                ) : (
+                  <div className="text-gray-500 py-2">История отсутствует</div>
+                )}
+              </div>
+            ),
+            rowExpandable: (record: BookCopy) => record.histories.length > 0,
+          }}
         />
         
         {book.copies.length === 0 && (

@@ -1,8 +1,8 @@
 from typing import List
 
 from app.schemas.book import BookDTO
-from app.schemas.book_copy import BookCopyDTO
+from app.schemas.book_copy import BookCopyHistoryDTO
 
 
 class BookRelationDTO(BookDTO):
-    copies: List[BookCopyDTO]
+    copies: List[BookCopyHistoryDTO]

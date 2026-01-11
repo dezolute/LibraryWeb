@@ -1,7 +1,8 @@
 from typing import TypeVar
 
-from app.models import ReaderORM, BookORM, BookCopyORM, LoanORM, RequestORM, ProfileORM
+from app.models import ReaderORM, BookORM, BookCopyORM, LoanORM, RequestORM, ProfileORM, HistoryORM
 from app.repositories.sqlalchemy import SqlAlchemyRepository
+
 
 class RepositoryFactory:
 
@@ -28,3 +29,7 @@ class RepositoryFactory:
     @staticmethod
     def profile_repository() -> SqlAlchemyRepository:
         return SqlAlchemyRepository[ProfileORM](ProfileORM)
+    
+    @staticmethod
+    def history_repository() -> SqlAlchemyRepository:
+        return SqlAlchemyRepository[HistoryORM](HistoryORM)

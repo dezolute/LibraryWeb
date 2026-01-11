@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey
+from datetime import date
+from typing import Optional
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from app.models import Base
@@ -16,4 +18,23 @@ class BookCopyORM(Base):
     book: Mapped["BookORM"] = relationship( # type: ignore
         "BookORM",
         back_populates="copies",
+    )
+
+    histories: Mapped[list["HistoryORM"]] = relationship(
+        "HistoryORM",
+        back_populates="copy",
+    )
+
+class HistoryORM(Base):
+    __tablename__ = "histories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    copy_id: Mapped[str] = mapped_column(ForeignKey("book_copies.serial_num"))
+    name: Mapped[str]
+    borrowed_at: Mapped[date] = mapped_column(server_default=func.now())
+    borrowed_to: Mapped[Optional[date]]
+
+    copy: Mapped[BookCopyORM] = relationship(
+        "BookCopyORM",
+        back_populates="histories"
     )

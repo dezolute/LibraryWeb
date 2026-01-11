@@ -67,6 +67,8 @@ pkginfo==1.12.1.2
 platformdirs==4.4.0
 pluggy==1.6.0
 poetry-core==2.2.1
+prometheus-fastapi-instrumentator==7.1.0
+prometheus_client==0.23.1
 propcache==0.4.1
 pycparser==2.23
 pydantic==2.12.3

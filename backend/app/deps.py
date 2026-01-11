@@ -21,7 +21,8 @@ class Deps:
         return BookService(
             RF.book_repository(),
             RF.book_copy_repository(),
-            RF.request_repository()
+            RF.request_repository(),
+            RF.history_repository()
         )
 
     @staticmethod

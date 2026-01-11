@@ -212,7 +212,7 @@ const BookForm = () => {
           label="Год публикации"
           rules={[
             { required: true, message: 'Введите год публикации' },
-            { type: 'number', min: 1900, message: 'Год должен быть не раньше 1900' }
+            { type: 'number' }
           ]}
         >
           <InputNumber style={{ width: '100%' }} />
